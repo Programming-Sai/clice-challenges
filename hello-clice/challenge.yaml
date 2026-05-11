@@ -1,0 +1,5 @@
+id: hello-clice
+name: "Hello CLICE Challenge"
+description: "Create a file called output.txt containing exactly 'Hello clice'"
+difficulty: "beginner"
+tags: ["bash", "echo", "file-creation"]
