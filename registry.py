@@ -125,7 +125,7 @@ def scan_challenges():
         # NOTE: We use 'name' from the config, not 'id'
         # The UUID is the internal identifier
         challenge = {
-            "uuid": challenge_uuid,
+            "id": challenge_uuid,
             "title": config["title"],
             "description": config["description"],
             "difficulty": config["difficulty"].upper() + symbol,
