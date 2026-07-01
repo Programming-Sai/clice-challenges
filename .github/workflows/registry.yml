@@ -1,0 +1,40 @@
+# .github/workflows/generate-registry.yml
+name: Generate Registry
+
+on:
+  push:
+    paths:
+      - "**/check.py"
+      - "**/Dockerfile"
+      - "**/challenge.yaml"
+      - "**/README.md"
+      - "registry.py"
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Generate registry
+        run: python registry.py
+
+      - name: Deploy to registry branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: registry
+          destination_dir: ./
+          keep_files: false
