@@ -48,3 +48,4 @@ jobs:
           publish_branch: registry
           destination_dir: ./
           keep_files: false
+          exclude_assets: ".nojekyll"
