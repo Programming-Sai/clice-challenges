@@ -2,7 +2,7 @@
   "total": 1,
   "challenges": [
     {
-      "uuid": "b22dab8a-863a-48ee-9cd8-94f269b67af8",
+      "uuid": "b6defe9a-a65c-4c87-889e-e9f0a7d6af1a",
       "title": "Hello CLICE Challenge",
       "description": "Create a file called output.txt containing exactly 'Hello clice'",
       "difficulty": "BEGINNER[#--]",
