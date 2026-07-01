@@ -134,7 +134,7 @@ def scan_challenges():
             "objectives": config["objectives"],
             "image": config["image"],
             "markdown": markdown,
-            "challenge_url": f"https://raw.githubusercontent.com/programming-sai/clice-challenges/main/{folder.name}/",
+            "challenge_url": f"https://github.com/programming-sai/clice-challenges/tree/main/{folder.name}/",
             "check_url": f"https://raw.githubusercontent.com/programming-sai/clice-challenges/main/{folder.name}/check.py",
         }
 
