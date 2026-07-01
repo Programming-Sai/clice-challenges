@@ -39,6 +39,7 @@ jobs:
         run: |
           mkdir -p deploy
           cp registry.json deploy/
+          cp registry.hash deploy/
 
       - name: Deploy to registry branch
         uses: peaceiris/actions-gh-pages@v4

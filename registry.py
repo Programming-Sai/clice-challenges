@@ -12,10 +12,10 @@ Assumptions:
 - The script is run from the repo root
 """
 
+import hashlib
 import json
 import yaml
 from pathlib import Path
-from datetime import datetime, timezone
 import sys
 import uuid
 
@@ -166,8 +166,16 @@ def main():
     with open(output_path, "w") as f:
         json.dump(registry, f, indent=2)
 
+     # Generate and write hash file
+    registry_bytes = json.dumps(registry, sort_keys=True).encode()
+    hash_value = hashlib.sha256(registry_bytes).hexdigest()
+    
+    with open("registry.hash", "w") as f:
+        f.write(hash_value)
+    
     print(f"\n✅ Registry generated with {len(challenges)} challenges")
-    print(f"📄 Saved to {output_path}")
+    print(f"📄 Saved to registry.json")
+    print(f"🔑 Hash: {hash_value[:16]}...")
 
 
 if __name__ == "__main__":
