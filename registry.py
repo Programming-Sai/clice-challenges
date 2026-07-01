@@ -119,7 +119,7 @@ def scan_challenges():
 
         # Generate UUID for the challenge
         challenge_uuid = str(uuid.uuid4())
-        symbol = f"[{'#' * (VALID_DIFFICULTIES.index(config["difficulty"].upper()) + 1)}{'-' * (len(VALID_DIFFICULTIES) - (VALID_DIFFICULTIES.index(config["difficulty"].upper()) + 1))}]"
+        symbol = f"[{'#' * (VALID_DIFFICULTIES.index(config['difficulty'].upper()) + 1)}{'-' * (len(VALID_DIFFICULTIES) - (VALID_DIFFICULTIES.index(config['difficulty'].upper()) + 1))}]"
 
         # Build the challenge entry
         # NOTE: We use 'name' from the config, not 'id'
