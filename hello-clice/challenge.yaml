@@ -1,4 +1,5 @@
 # hello-clice/challenge.yaml
+code: "hello-clice"
 title: "Hello CLICE Challenge"
 description: "Create a file called output.txt containing exactly 'Hello clice'"
 difficulty: "BEGINNER"

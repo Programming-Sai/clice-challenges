@@ -24,6 +24,7 @@ IGNORE_DIRS = {".git", ".github", "scripts", "assets", "__pycache__"}
 
 # Required fields in challenge.yaml
 REQUIRED_FIELDS = {
+    "code",
     "title",
     "description",
     "difficulty",
@@ -75,7 +76,7 @@ def scan_challenges():
     """Scan all folders in the current directory for challenge.yaml."""
     root_dir = Path(".")
     challenges = []
-
+    seen_codes = set()
     for folder in root_dir.iterdir():
         # Skip files and ignored directories
         if not folder.is_dir():
@@ -107,6 +108,13 @@ def scan_challenges():
                 print(f"     - {err}")
             continue
 
+        code = config.get("code")
+        if code in seen_codes:
+            print(f"❌ Skipping {folder.name}: duplicate code '{code}'")
+            continue
+        seen_codes.add(code)
+
+
         # Read README.md if it exists
         readme_path = folder / "README.md"
         markdown = ""
@@ -126,6 +134,7 @@ def scan_challenges():
         # The UUID is the internal identifier
         challenge = {
             "id": challenge_uuid,
+            "code": code,
             "title": config["title"],
             "description": config["description"],
             "difficulty": config["difficulty"].upper() + symbol,
