@@ -72,6 +72,41 @@ def validate_challenge_config(config: dict, folder_name: str) -> tuple[bool, lis
     return len(errors) == 0, errors
 
 
+def find_checker_file(folder: Path, config: dict):
+    """
+    Find this challenge's checker script. clice no longer assumes Python -
+    the checker can be bash, python3, node, or anything else with a shebang,
+    since verify() execs it directly inside the challenge container.
+
+    Resolution order:
+      1. An explicit 'checker' field in challenge.yaml, if present - lets an
+         author disambiguate when a folder has more than one check.* file.
+      2. Auto-discovery: any file in the folder named 'check.<ext>'.
+
+    Returns: (filename_or_None, error_message_or_None)
+    """
+    explicit = config.get("checker")
+    if explicit:
+        if (folder / explicit).exists():
+            return explicit, None
+        return None, f"'checker: {explicit}' specified but {folder / explicit} does not exist"
+
+    candidates = sorted(
+        f.name for f in folder.iterdir()
+        if f.is_file() and f.stem == "check" and f.suffix
+    )
+
+    if not candidates:
+        return None, "No checker script found (expected a 'check.<ext>' file, or a 'checker' field in challenge.yaml)"
+    if len(candidates) > 1:
+        return None, (
+            f"Multiple checker candidates found ({', '.join(candidates)}) - "
+            f"add a 'checker' field to challenge.yaml to disambiguate"
+        )
+
+    return candidates[0], None
+
+
 def scan_challenges():
     """Scan all folders in the current directory for challenge.yaml."""
     root_dir = Path(".")
@@ -114,6 +149,11 @@ def scan_challenges():
             continue
         seen_codes.add(code)
 
+        checker_file, checker_error = find_checker_file(folder, config)
+        if checker_error:
+            print(f"❌ Skipping {folder.name}: {checker_error}")
+            continue
+
 
         # Read README.md if it exists
         readme_path = folder / "README.md"
@@ -144,7 +184,7 @@ def scan_challenges():
             "image": config["image"],
             "markdown": markdown,
             "challenge_url": f"https://github.com/programming-sai/clice-challenges/tree/main/{folder.name}/",
-            "check_url": f"https://raw.githubusercontent.com/programming-sai/clice-challenges/main/{folder.name}/check.py",
+            "check_url": f"https://raw.githubusercontent.com/programming-sai/clice-challenges/main/{folder.name}/{checker_file}",
         }
 
         challenges.append(challenge)
