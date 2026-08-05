@@ -2,7 +2,7 @@
   "total": 1,
   "challenges": [
     {
-      "id": "9d2a0726-9c59-4df0-83c4-bb11f551d2a0",
+      "id": "a1d1ce24-c654-4c80-9527-739e2fc675a6",
       "code": "hello-clice",
       "title": "Hello CLICE Challenge",
       "description": "Create a file called output.txt containing exactly 'Hello clice'",
