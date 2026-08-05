@@ -1,0 +1,18 @@
+code: failed-login-audit
+title: Failed Login Investigation
+category: TEXT_PROCESSING
+difficulty: INTERMEDIATE
+description: >-
+  Analyze a web server access log to find which IP address is responsible
+  for the most failed login attempts.
+tags:
+  - grep
+  - sed
+  - awk
+  - text-processing
+  - log-analysis
+objectives:
+  - Locate all HTTP 401 (failed login) entries in /workspace/data/access.log
+  - Determine which single IP address is responsible for the most 401 responses
+  - Write that IP address, and only that IP address, to /workspace/output.txt
+image: ghcr.io/programming-sai/clice/challenges/failed-login-audit:latest

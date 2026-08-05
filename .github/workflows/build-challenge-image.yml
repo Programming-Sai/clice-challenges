@@ -1,0 +1,57 @@
+name: Build and Push Challenge Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/Dockerfile"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      challenges: ${{ steps.find.outputs.challenges }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find all challenge folders with a Dockerfile
+        id: find
+        run: |
+          challenges=$(find . -maxdepth 2 -name Dockerfile \
+            -not -path "./.git/*" \
+            | sed 's|^\./||; s|/Dockerfile$||' \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Found challenges: $challenges"
+          echo "challenges=$challenges" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: discover
+    if: needs.discover.outputs.challenges != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        challenge: ${{ fromJson(needs.discover.outputs.challenges) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.challenge }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.challenge }}
+          push: true
+          tags: |
+            ghcr.io/programming-sai/clice/challenges/${{ matrix.challenge }}:latest
+            ghcr.io/programming-sai/clice/challenges/${{ matrix.challenge }}:${{ github.sha }}
