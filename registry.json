@@ -1,8 +1,32 @@
 {
-  "total": 1,
+  "total": 2,
   "challenges": [
     {
-      "id": "a1d1ce24-c654-4c80-9527-739e2fc675a6",
+      "id": "dd612e7d-fdec-4511-9460-eee1ef97bb86",
+      "code": "failed-login-audit",
+      "title": "Failed Login Investigation",
+      "description": "Analyze a web server access log to find which IP address is responsible for the most failed login attempts.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "TEXT_PROCESSING",
+      "tags": [
+        "grep",
+        "sed",
+        "awk",
+        "text-processing",
+        "log-analysis"
+      ],
+      "objectives": [
+        "Locate all HTTP 401 (failed login) entries in /workspace/data/access.log",
+        "Determine which single IP address is responsible for the most 401 responses",
+        "Write that IP address, and only that IP address, to /workspace/output.txt"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/failed-login-audit:latest",
+      "markdown": "# Failed Login Investigation\n\n## Objective\n\nA web server access log has been placed at `/workspace/data/access.log`.\nFind the single IP address responsible for the most HTTP `401` (failed\nlogin) responses, and write **only that IP address** to\n`/workspace/output.txt`.\n\n## Task\n\n1. Inspect the log format \u2014 each line looks like:\n   ```\n   10.0.0.7 - - [10/Aug/2026:14:20:05 +0000] \"POST /login HTTP/1.1\" 401 128\n   ```\n2. Filter down to only the `401` lines.\n3. Extract just the IP address (first field) from each matching line.\n4. Count how often each IP appears, and find the one with the highest count.\n5. Write that IP \u2014 and nothing else \u2014 to `/workspace/output.txt`.\n\n## Hints\n\n- `grep` can filter lines containing `401`.\n- `awk '{print $1}'` pulls out the first whitespace-separated field of each line.\n- `sort | uniq -c | sort -nr` is a classic combo for \"count occurrences, most frequent first.\"\n- `head -n1` gets you just the top result once sorted.\n- Double-check your final file has no extra text, quotes, or trailing content \u2014\n  just the IP address itself.\n\n## Expected Outcome\n\nA file `/workspace/output.txt` containing exactly one IP address: the one\nwith the most `401` entries in the log.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/failed-login-audit/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/failed-login-audit/check.sh"
+    },
+    {
+      "id": "13a0030a-097c-4fa9-9f4a-cc7ea79eafc8",
       "code": "hello-clice",
       "title": "Hello CLICE Challenge",
       "description": "Create a file called output.txt containing exactly 'Hello clice'",
