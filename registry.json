@@ -1,8 +1,8 @@
 {
-  "total": 2,
+  "total": 3,
   "challenges": [
     {
-      "id": "dd612e7d-fdec-4511-9460-eee1ef97bb86",
+      "id": "ac25b6d5-7d0a-49e4-8556-792c360a049d",
       "code": "failed-login-audit",
       "title": "Failed Login Investigation",
       "description": "Analyze a web server access log to find which IP address is responsible for the most failed login attempts.",
@@ -26,7 +26,31 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/failed-login-audit/check.sh"
     },
     {
-      "id": "13a0030a-097c-4fa9-9f4a-cc7ea79eafc8",
+      "id": "ea7d4b4f-22bb-45ff-a888-07931c98e23c",
+      "code": "ghost-service",
+      "title": "Ghost Service",
+      "description": "Stand up a small HTTP service inside this container, running as an unprivileged user, that keeps answering health checks even after your interactive session ends.",
+      "difficulty": "ADVANCED[###]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "process-management",
+        "users-and-permissions",
+        "networking",
+        "services"
+      ],
+      "objectives": [
+        "Create a non-root system user named svc-runner",
+        "Get an HTTP service listening on port 9000, running as svc-runner (not root)",
+        "The service must respond to GET /health with a JSON body containing \"status\":\"ok\" and \"service\":\"clice\"",
+        "The service must still be running and answering after you exit your shell (verification happens after your session ends, not during it)"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/ghost-service:latest",
+      "markdown": "# Ghost Service\n\n## Objective\n\nGet a small HTTP service running inside this container that:\n\n1. Runs as a **non-root** system user named `svc-runner` (not root, not\n   your default user).\n2. Listens on **TCP port 9000**.\n3. Responds to `GET /health` with a JSON body containing\n   `\"status\": \"ok\"` and `\"service\": \"clice\"` (formatting/whitespace\n   doesn't matter, the fields just need to be present with those values).\n4. **Keeps running after your shell session ends.** Verification happens\n   once you submit, not while you're still connected \u2014 if your service\n   dies the moment your interactive shell exits, it won't be running by\n   the time it's checked.\n\nThere is no file to write anywhere for this one. Everything is checked\nby inspecting live process, user, and network state.\n\n## Tools available in this image\n\n`python3`, `curl`, `netcat-openbsd`, `socat`, `sudo`, `iproute2`,\n`procps` \u2014 pick whatever combination gets you there. There is more than\none valid way to build the service itself and more than one valid way\nto keep it alive after your shell exits.\n\n## Notes\n\n- Think about what actually happens to a background process when the\n  shell that launched it terminates.\n- Running the service as root is the easy way and will fail the check \u2014\n  the whole point is doing it as an unprivileged user.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/ghost-service/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/ghost-service/check.sh"
+    },
+    {
+      "id": "b25c8a3c-9652-4a7b-aa77-8c2030e9a193",
       "code": "hello-clice",
       "title": "Hello CLICE Challenge",
       "description": "Create a file called output.txt containing exactly 'Hello clice'",
