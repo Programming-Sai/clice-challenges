@@ -1,0 +1,19 @@
+code: ghost-service
+title: Ghost Service
+category: SYSTEM_ADMINISTRATION
+difficulty: ADVANCED
+description: >-
+  Stand up a small HTTP service inside this container, running as an
+  unprivileged user, that keeps answering health checks even after your
+  interactive session ends.
+tags:
+  - process-management
+  - users-and-permissions
+  - networking
+  - services
+objectives:
+  - Create a non-root system user named svc-runner
+  - Get an HTTP service listening on port 9000, running as svc-runner (not root)
+  - The service must respond to GET /health with a JSON body containing "status":"ok" and "service":"clice"
+  - The service must still be running and answering after you exit your shell (verification happens after your session ends, not during it)
+image: ghcr.io/programming-sai/clice/challenges/ghost-service:latest
