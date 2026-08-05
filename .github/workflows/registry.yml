@@ -4,7 +4,7 @@ name: Generate Registry
 on:
   push:
     paths:
-      - "**/check.py"
+      - "**/check.*"
       - "**/Dockerfile"
       - "**/challenge.yaml"
       - "**/README.md"
