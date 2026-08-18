@@ -1,8 +1,8 @@
 {
-  "total": 3,
+  "total": 4,
   "challenges": [
     {
-      "id": "ac25b6d5-7d0a-49e4-8556-792c360a049d",
+      "id": "7a5d9580-f1b0-4479-a7f1-779aac681778",
       "code": "failed-login-audit",
       "title": "Failed Login Investigation",
       "description": "Analyze a web server access log to find which IP address is responsible for the most failed login attempts.",
@@ -26,7 +26,26 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/failed-login-audit/check.sh"
     },
     {
-      "id": "ea7d4b4f-22bb-45ff-a888-07931c98e23c",
+      "id": "da401bee-b12d-4ce9-ab96-db16003f8db7",
+      "code": "timeout-test",
+      "title": "(Stress Test) Checker Timeout",
+      "description": "Internal stress-test challenge - the checker deliberately hangs and floods stdout to verify checker_timeout is actually enforced.",
+      "difficulty": "BEGINNER[#--]",
+      "category": "STRESS_TEST",
+      "tags": [
+        "internal",
+        "stress-test"
+      ],
+      "objectives": [
+        "Type any command and submit - the checker itself is what's being tested here"
+      ],
+      "image": "ubuntu:22.04",
+      "markdown": "# (Stress Test) Checker Timeout\n\nNot a real challenge. Its checker deliberately hangs and floods stdout,\nto confirm `checker_timeout` actually kills a runaway checker under real\nadversarial conditions rather than just the clean cases already tested.\n\nDo anything, submit, and confirm:\n- The verdict comes back within `checker_timeout` seconds (default 20), not\n  100,000 * 0.05s later.\n- The result is a clean FAIL/ENVIRONMENT ERROR, not a hang or a crash.\n- `docker ps -a` shows no leftover exec processes or zombie state afterward.\n\nRemove this challenge from the registry once you're done with it - it's\na test fixture, not real content.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/timeout-test/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/timeout-test/check.sh"
+    },
+    {
+      "id": "f7212459-3537-4562-a0c1-4f9855fee80d",
       "code": "ghost-service",
       "title": "Ghost Service",
       "description": "Stand up a small HTTP service inside this container, running as an unprivileged user, that keeps answering health checks even after your interactive session ends.",
@@ -50,7 +69,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/ghost-service/check.sh"
     },
     {
-      "id": "b25c8a3c-9652-4a7b-aa77-8c2030e9a193",
+      "id": "826dd119-05ec-4d6b-a5e8-9a0d90d77fae",
       "code": "hello-clice",
       "title": "Hello CLICE Challenge",
       "description": "Create a file called output.txt containing exactly 'Hello clice'",
