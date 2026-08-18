@@ -1,0 +1,13 @@
+code: timeout-test
+title: (Stress Test) Checker Timeout
+category: STRESS_TEST
+difficulty: BEGINNER
+description: >-
+  Internal stress-test challenge - the checker deliberately hangs and
+  floods stdout to verify checker_timeout is actually enforced.
+tags:
+  - internal
+  - stress-test
+objectives:
+  - Type any command and submit - the checker itself is what's being tested here
+image: ubuntu:22.04
