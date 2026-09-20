@@ -1,8 +1,119 @@
 {
-  "total": 3,
+  "total": 13,
   "challenges": [
     {
-      "id": "14066349-f282-43a7-a788-92cc044665ab",
+      "id": "94f8e170-b2bb-4a8f-b488-3f54e7833531",
+      "code": "grep-hyphen",
+      "title": "Grep Hyphen Pattern",
+      "description": "Search for a string beginning with a hyphen without triggering option parsing.",
+      "difficulty": "BEGINNER[#--]",
+      "category": "TEXT_PROCESSING",
+      "tags": [
+        "grep",
+        "text-processing",
+        "cli-syntax"
+      ],
+      "objectives": [
+        "Find the line containing -k in /workspace/data/options.txt",
+        "Write that line and only that line to /workspace/output.txt"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/grep-hyphen:latest",
+      "markdown": "# Hyphen Pattern Search\n\n## Objective\nExtract a single line from a file that contains a hyphen-prefixed pattern.\n\n## Task\nThe file `/workspace/data/options.txt` lists one option per line. One of those lines contains the string `-k` (hyphen followed by `k`).\n\nFind that line and write **only that line** to `/workspace/output.txt`.\n\nBe careful \u2014 some search tools interpret leading hyphens as options rather than data.\n\n## Hints\n- A naive search for `-k` may be treated as an option rather than a pattern.\n- Check your tool's manual for how to mark the end of options or specify a pattern explicitly.\n- The output file must contain exactly one line.\n\n## Expected Outcome\n`/workspace/output.txt` contains exactly the line from the source file that includes `-k`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/grep-hyphen/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/grep-hyphen/check.sh"
+    },
+    {
+      "id": "37a6786c-3d04-4133-8712-91332e75c9e2",
+      "code": "firewall-port-8080",
+      "title": "Firewall Port 8080",
+      "description": "Open a TCP port permanently in firewalld.",
+      "difficulty": "BEGINNER[#--]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "firewalld",
+        "firewall-cmd",
+        "networking"
+      ],
+      "objectives": [
+        "Add TCP port 8080 to the public zone permanently",
+        "Reload or ensure config is written",
+        "Verify port is listed via offline check or config file"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/firewall-port-8080:latest",
+      "markdown": "# Open Port 8080\n\n## Objective\nAllow TCP traffic on port `8080` in the `public` firewall zone.\n\n## Task\nOpen port `8080/tcp` permanently in the `public` zone. The change should persist and be visible in the permanent configuration.\n\nIf the firewall service is not actively running, the offline configuration is sufficient.\n\n## Hints\n- `firewalld` provides both a running and an offline/permanent mode \u2014 the permanent zone files are stored under `/etc/firewalld/zones/`.\n- You can query whether a port is considered open in the permanent configuration.\n\n## Expected Outcome\nPort `8080/tcp` is listed as open for the `public` zone in the permanent configuration.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/firewall-port-8080/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/firewall-port-8080/check.sh"
+    },
+    {
+      "id": "9db78c94-16a0-4325-b712-2d226b24c8d0",
+      "code": "cron-suppress",
+      "title": "Cron Job with Output Suppression",
+      "description": "Create a recurring cron job that discards all output to prevent mail generation.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "cron",
+        "crontab",
+        "scheduling"
+      ],
+      "objectives": [
+        "Create executable script /workspace/job.sh that appends the current date to /workspace/log.txt",
+        "Add a cron entry that runs every 5 minutes as: */5 * * * * /workspace/job.sh >/dev/null 2>&1",
+        "Verify the entry is visible via crontab -l or spool file"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/cron-suppress:latest",
+      "markdown": "# Scheduled Task with Suppressed Output\n\n## Objective\nSet up a recurring scheduled task that runs quietly.\n\n## Task\n1. Create an executable script at `/workspace/job.sh` that appends the current date/time to `/workspace/log.txt`.\n2. Schedule it to run **every 5 minutes** via `cron`. The job must discard both standard output and standard error so it generates no mail.\n\nAdd the schedule without interactively editing the crontab.\n\n## Hints\n- The script needs to be executable to run from cron.\n- A cron schedule has five time fields followed by a command \u2014 research the pattern for \u201cevery 5 minutes\u201d.\n- Redirecting both output streams is the key to suppressing mail.\n\n## Expected Outcome\n- `/workspace/job.sh` is executable and appends a date to the log.\n- The cron table contains an entry that runs every 5 minutes and redirects output to `/dev/null`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/cron-suppress/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/cron-suppress/check.sh"
+    },
+    {
+      "id": "8c0bbc4c-5c6a-4a33-b8b4-a8baebd25e99",
+      "code": "mysql-grant-select",
+      "title": "MariaDB User Grants",
+      "description": "Create a database user and grant specific privileges.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "mariadb",
+        "mysql",
+        "database",
+        "privileges"
+      ],
+      "objectives": [
+        "Start MariaDB service",
+        "Create database appdb",
+        "Create user appuser@localhost identified by SecurePass123!",
+        "Grant SELECT and INSERT on appdb.* to that user"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/mysql-grant-select:latest",
+      "markdown": "# Database User Privileges\n\n## Objective\nCreate a database and a restricted user with specific grants.\n\n## Task\nUsing MariaDB:\n\n1. Ensure the database server is running and create a database named `appdb` if it does not exist.\n2. Create a user `appuser@localhost` identified by `SecurePass123!` if it does not exist.\n3. Grant only `SELECT` and `INSERT` privileges on `appdb.*` to that user.\n\nDo not grant additional privileges.\n\n## Hints\n- The server can be started directly without the system service manager.\n- Grants can be inspected to confirm only the intended privileges were given.\n- The user and database creation should be idempotent.\n\n## Expected Outcome\n- Database `appdb` exists.\n- User `appuser@localhost` exists with password `SecurePass123!`.\n- `SHOW GRANTS` for the user includes `SELECT` and `INSERT` on `appdb` and does not include `ALL PRIVILEGES`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/mysql-grant-select/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/mysql-grant-select/check.sh"
+    },
+    {
+      "id": "40a8535c-6c1b-4c18-adbb-d241c9ceaf36",
+      "code": "user-custom-home",
+      "title": "Custom User Home and Shell",
+      "description": "Create a user with a specific home directory, login shell, and UID.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "useradd",
+        "users-and-permissions",
+        "getent"
+      ],
+      "objectives": [
+        "Create user cliceuser with home /opt/cliceuser, shell /bin/bash, UID 1500",
+        "Ensure home directory exists and is owned by cliceuser:cliceuser",
+        "Verify getent passwd shows cliceuser:x:1500:1500::/opt/cliceuser:/bin/bash"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/user-custom-home:latest",
+      "markdown": "# Custom User Setup\n\n## Objective\nCreate a system user with specific attributes.\n\n## Task\nCreate a user named `cliceuser` with:\n- Home directory: `/opt/cliceuser`\n- Login shell: `/bin/bash`\n- UID: `1500`\n- Primary group: `cliceuser` (also GID `1500`)\n\nThe home directory must exist and be owned by this user. The account does not need a password.\n\n## Hints\n- There is a single command that can set home, shell, and UID together \u2014 check its options for creating the home directory automatically.\n- After creation, you can inspect the user\u2019s entry and the home directory\u2019s ownership.\n\n## Expected Outcome\n`getent passwd cliceuser` shows `cliceuser:x:1500:1500::/opt/cliceuser:/bin/bash` and `/opt/cliceuser` exists with correct ownership.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/user-custom-home/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/user-custom-home/check.sh"
+    },
+    {
+      "id": "b03bc1d5-578a-4631-9db7-242e29b12821",
       "code": "failed-login-audit",
       "title": "Failed Login Investigation",
       "description": "Analyze a web server access log to find which IP address is responsible for the most failed login attempts.",
@@ -26,7 +137,53 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/failed-login-audit/check.sh"
     },
     {
-      "id": "3dd896e6-fee7-40f2-9b23-987949e1e42c",
+      "id": "8454bede-9a69-456a-8112-a6440da25b10",
+      "code": "perm-numeric-764",
+      "title": "Numeric Permission 764",
+      "description": "Apply exact numeric permissions to a file using chmod.",
+      "difficulty": "BEGINNER[#--]",
+      "category": "FILE_MANIPULATION",
+      "tags": [
+        "chmod",
+        "permissions",
+        "stat",
+        "file-manipulation"
+      ],
+      "objectives": [
+        "Create file /workspace/output.txt with any content",
+        "Set permissions so owner has rwx (7), group has rw- (6), others have r-- (4) \u2014 mode 764",
+        "Verify with stat -c '%a' that the mode is exactly 764"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/perm-numeric-764:latest",
+      "markdown": "# Numeric Permission 764\n\n## Objective\nA file at `/workspace/output.txt` must exist and have permissions `764`.\n\n## Task\nCreate the file `/workspace/output.txt` (any content is fine) and configure its permissions so that:\n- Owner can read, write, and execute (`rwx`)\n- Group can read and write (`rw-`)\n- Others can read only (`r--`)\n\nIn octal, this combination is `764`. The checker will verify the numeric mode.\n\n## Hints\n- `stat` can show the current numeric mode of a file.\n- Permissions can be set using either symbolic (`u=rwx,g=rw,o=r`) or numeric (`764`) forms.\n\n## Expected Outcome\n`/workspace/output.txt` exists and its mode is `764`. Verify your work with `stat`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/perm-numeric-764/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/perm-numeric-764/check.sh"
+    },
+    {
+      "id": "562c7096-432f-4b84-907e-985734019590",
+      "code": "nginx-static-8080",
+      "title": "Nginx Static Site on 8080",
+      "description": "Configure Nginx to serve static content on port 8080.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "nginx",
+        "web-server",
+        "curl",
+        "networking"
+      ],
+      "objectives": [
+        "Create /data/www/index.html containing exactly 'hello, clice'",
+        "Configure Nginx to serve /data/www on port 8080",
+        "Ensure curl http://localhost:8080 returns hello, clice"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/nginx-static-8080:latest",
+      "markdown": "# Web Service on 8080\n\n## Objective\nServe a static page on port `8080` using Nginx.\n\n## Task\n1. Create the document root and content:\n   - Directory: `/data/www`\n   - File: `index.html` containing exactly `hello, clice` (lowercase, with a comma and space)\n\n2. Configure Nginx to serve `/data/www` on port `8080` and start the service. The default configuration should be adapted or supplemented so that a request to `http://localhost:8080/` returns your file.\n\n## Hints\n- On this system Nginx configuration can be added under `/etc/nginx/conf.d/` or `/etc/nginx/sites-available/`.\n- After changing configuration, verify syntax and (re)start Nginx.\n- `curl` can be used to test the local endpoint.\n\n## Expected Outcome\n`curl -s http://localhost:8080/` returns `hello, clice` and `/data/www/index.html` contains the same.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/nginx-static-8080/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/nginx-static-8080/check.sh"
+    },
+    {
+      "id": "7b9950ce-246e-4498-9648-894f6b289917",
       "code": "ghost-service",
       "title": "Ghost Service",
       "description": "Stand up a small HTTP service inside this container, running as an unprivileged user, that keeps answering health checks even after your interactive session ends.",
@@ -50,7 +207,29 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/ghost-service/check.sh"
     },
     {
-      "id": "72eddc14-695a-4639-bd59-3bbd79077d4a",
+      "id": "cf330054-1b34-4a67-8579-690b182a75fc",
+      "code": "sed-heredoc-norm",
+      "title": "Config Sanitization with sed",
+      "description": "Edit a config file in place \u2014 remove comments and blank lines, and toggle a setting.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "TEXT_PROCESSING",
+      "tags": [
+        "sed",
+        "text-processing",
+        "config"
+      ],
+      "objectives": [
+        "Remove all comment lines starting with # from /workspace/data/app.conf",
+        "Remove all empty lines from /workspace/data/app.conf",
+        "Change DEBUG_MODE=true to DEBUG_MODE=false in the same file"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/sed-heredoc-norm:latest",
+      "markdown": "# Config Sanitization\n\n## Objective\nClean up the config file at `/workspace/data/app.conf`.\n\n## Task\nThe file contains comment lines, blank lines, and a debug flag that is currently enabled.\n\nYour goal is to leave the file in a clean state:\n- No lines should start with `#`\n- No empty lines should remain\n- The setting `DEBUG_MODE` must be `false`, not `true`\n\nWork directly on `/workspace/data/app.conf`. Inspect the file before and after to confirm your changes.\n\n## Hints\n- You can edit a file in place without opening an editor.\n- Consider how to match lines that start with a specific character or are completely empty.\n- A substitution can replace one string value with another.\n\n## Expected Outcome\nThe file contains no comment or empty lines and includes `DEBUG_MODE=false`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/sed-heredoc-norm/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/sed-heredoc-norm/check.sh"
+    },
+    {
+      "id": "fd3e25b0-049f-4b1b-990a-6bc6cdbcb942",
       "code": "hello-clice",
       "title": "Hello CLICE Challenge",
       "description": "Create a file called output.txt containing exactly 'Hello clice'",
@@ -69,6 +248,52 @@
       "markdown": "# Hello CLICE Challenge\n\n## Objective\n\nCreate a file called `output.txt` in your workspace containing exactly the string `Hello clice`.\n\n## Task\n\nThis is the simplest possible challenge to verify your CLI environment is working.\n\n1. Navigate to the `/workspace` directory if you're not already there.\n2. Use the `echo` command to write the text `Hello clice` to a file named `output.txt`.\n3. Verify the file exists and contains the correct text.\n\n## Hints\n\n- Use `echo` to write to a file: `echo \"text\" > filename`\n- Check your work with `cat output.txt`\n- You should see `Hello clice` printed to the terminal\n\n## Expected Outcome\n\nA file `/workspace/output.txt` with the exact contents:\n\n```bash\nHello clice\n```\n",
       "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/hello-clice/",
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/hello-clice/check.sh"
+    },
+    {
+      "id": "b70f954b-dbc0-4de5-b5c2-b2cc08e8dd73",
+      "code": "awk-sales-aggregate",
+      "title": "Sales Region Aggregation",
+      "description": "Use awk to find the region with the highest total sales from a delimited dataset.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "TEXT_PROCESSING",
+      "tags": [
+        "awk",
+        "aggregation",
+        "csv",
+        "text-processing"
+      ],
+      "objectives": [
+        "Read pipe-delimited /workspace/data/sales.csv (skip header)",
+        "Sum the amount column (field 3) per region (field 2)",
+        "Write only the region name with the highest total to /workspace/output.txt"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/awk-sales-aggregate:latest",
+      "markdown": "# Sales Region Aggregation\n\n## Objective\nDetermine which sales region has the highest total amount.\n\n## Task\nA pipe-delimited file at `/workspace/data/sales.csv` contains sales records with the header `name|region|amount|date`.\n\nSum the `amount` values for each `region` (skipping the header) and write **only the name of the region with the highest total** to `/workspace/output.txt` \u2014 exactly one word, no extra formatting.\n\n## Hints\n- The file uses `|` as a delimiter \u2014 many tools can specify a custom field separator.\n- You will need to accumulate a sum per region and then find the maximum.\n- Look at how to skip the first line of a file.\n\n## Expected Outcome\n`/workspace/output.txt` contains a single region name that matches the highest total. No extra spaces or additional lines.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/awk-sales-aggregate/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/awk-sales-aggregate/check.sh"
+    },
+    {
+      "id": "338f53ae-b92f-4544-acdb-46b3c5b6032a",
+      "code": "dns-forward-zone",
+      "title": "BIND Forward Zone",
+      "description": "Configure BIND to resolve a custom domain to an IP address.",
+      "difficulty": "ADVANCED[###]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "bind",
+        "dns",
+        "named",
+        "networking"
+      ],
+      "objectives": [
+        "Create forward zone for app.local resolving www.app.local to 192.168.1.100",
+        "Ensure named-checkconf and named-checkzone pass",
+        "Ensure dig @127.0.0.1 www.app.local returns 192.168.1.100"
+      ],
+      "image": "ghcr.io/programming-sai/clice/challenges/dns-forward-zone:latest",
+      "markdown": "# DNS Forward Zone\n\n## Objective\nConfigure a local BIND resolver to answer for `app.local`.\n\n## Task\nConfigure BIND to resolve `www.app.local` to `192.168.1.100`.\n\nYour zone should include:\n- A SOA record\n- An NS record for `ns1.app.local`\n- An A record for `ns1` (`192.168.1.10`)\n- An A record for `www` (`192.168.1.100`)\n\nAdd the zone to the BIND configuration, verify the configuration and zone file are valid, start the name server, and ensure it answers queries.\n\n## Hints\n- Zone files and BIND configuration live under `/etc/bind` on Ubuntu and `/etc` / `/var/named` on openEuler \u2014 check where your system expects them.\n- Two tools can validate your work before you start the server: one for the main config and one for the zone file.\n- Test with a direct query to `127.0.0.1` to avoid relying on external resolvers.\n\n## Expected Outcome\n`dig @127.0.0.1 www.app.local +short` returns `192.168.1.100` and both configuration checks pass.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/dns-forward-zone/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/dns-forward-zone/check.sh"
     }
   ]
 }
