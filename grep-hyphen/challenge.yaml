@@ -7,7 +7,7 @@ tags:
   - "grep"
   - "text-processing"
   - "cli-syntax"
-image: "ghcr.io/programming-sai/clice/challenges/grep-hyphen:latest"
+image: "ghcr.io/programming-sai/clice-challenges/grep-hyphen:latest"
 objectives:
   - "Find the line containing -k in /workspace/data/options.txt"
   - "Write that line and only that line to /workspace/output.txt"

@@ -8,7 +8,7 @@ tags:
   - "web-server"
   - "curl"
   - "networking"
-image: "ghcr.io/programming-sai/clice/challenges/nginx-static-8080:latest"
+image: "ghcr.io/programming-sai/clice-challenges/nginx-static-8080:latest"
 objectives:
   - "Create /data/www/index.html containing exactly 'hello, clice'"
   - "Configure Nginx to serve /data/www on port 8080"

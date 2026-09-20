@@ -53,5 +53,5 @@ jobs:
           context: ./${{ matrix.challenge }}
           push: true
           tags: |
-            ghcr.io/programming-sai/clice/challenges/${{ matrix.challenge }}:latest
-            ghcr.io/programming-sai/clice/challenges/${{ matrix.challenge }}:${{ github.sha }}
+            ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }}:latest
+            ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }}:${{ github.sha }}

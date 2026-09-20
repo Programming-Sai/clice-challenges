@@ -7,7 +7,7 @@ tags:
   - "sed"
   - "text-processing"
   - "config"
-image: "ghcr.io/programming-sai/clice/challenges/sed-heredoc-norm:latest"
+image: "ghcr.io/programming-sai/clice-challenges/sed-heredoc-norm:latest"
 objectives:
   - "Remove all comment lines starting with # from /workspace/data/app.conf"
   - "Remove all empty lines from /workspace/data/app.conf"

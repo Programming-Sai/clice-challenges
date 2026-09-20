@@ -16,4 +16,4 @@ objectives:
   - Get an HTTP service listening on port 9000, running as svc-runner (not root)
   - The service must respond to GET /health with a JSON body containing "status":"ok" and "service":"clice"
   - The service must still be running and answering after you exit your shell (verification happens after your session ends, not during it)
-image: ghcr.io/programming-sai/clice/challenges/ghost-service:latest
+image: ghcr.io/programming-sai/clice-challenges/ghost-service:latest

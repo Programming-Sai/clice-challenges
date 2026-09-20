@@ -8,7 +8,7 @@ tags:
   - "aggregation"
   - "csv"
   - "text-processing"
-image: "ghcr.io/programming-sai/clice/challenges/awk-sales-aggregate:latest"
+image: "ghcr.io/programming-sai/clice-challenges/awk-sales-aggregate:latest"
 objectives:
   - "Read pipe-delimited /workspace/data/sales.csv (skip header)"
   - "Sum the amount column (field 3) per region (field 2)"

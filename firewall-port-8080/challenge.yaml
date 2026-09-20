@@ -7,7 +7,7 @@ tags:
   - "firewalld"
   - "firewall-cmd"
   - "networking"
-image: "ghcr.io/programming-sai/clice/challenges/firewall-port-8080:latest"
+image: "ghcr.io/programming-sai/clice-challenges/firewall-port-8080:latest"
 objectives:
   - "Add TCP port 8080 to the public zone permanently"
   - "Reload or ensure config is written"

@@ -8,7 +8,7 @@ tags:
   - "bash"
   - "echo"
   - "file-creation"
-image: "ghcr.io/programming-sai/clice/challenges/hello-clice:latest"
+image: "ghcr.io/programming-sai/clice-challenges/hello-clice:latest"
 objectives:
   - "Create a file named `output.txt` in the `/workspace` directory"
   - "The file must contain the exact string 'Hello clice'"

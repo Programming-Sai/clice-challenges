@@ -8,7 +8,7 @@ tags:
   - "mysql"
   - "database"
   - "privileges"
-image: "ghcr.io/programming-sai/clice/challenges/mysql-grant-select:latest"
+image: "ghcr.io/programming-sai/clice-challenges/mysql-grant-select:latest"
 objectives:
   - "Start MariaDB service"
   - "Create database appdb"

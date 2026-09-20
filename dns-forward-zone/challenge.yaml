@@ -8,7 +8,7 @@ tags:
   - "dns"
   - "named"
   - "networking"
-image: "ghcr.io/programming-sai/clice/challenges/dns-forward-zone:latest"
+image: "ghcr.io/programming-sai/clice-challenges/dns-forward-zone:latest"
 objectives:
   - "Create forward zone for app.local resolving www.app.local to 192.168.1.100"
   - "Ensure named-checkconf and named-checkzone pass"

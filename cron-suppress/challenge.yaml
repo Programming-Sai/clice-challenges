@@ -7,7 +7,7 @@ tags:
   - "cron"
   - "crontab"
   - "scheduling"
-image: "ghcr.io/programming-sai/clice/challenges/cron-suppress:latest"
+image: "ghcr.io/programming-sai/clice-challenges/cron-suppress:latest"
 objectives:
   - "Create executable script /workspace/job.sh that appends the current date to /workspace/log.txt"
   - "Add a cron entry that runs every 5 minutes as: */5 * * * * /workspace/job.sh >/dev/null 2>&1"
