@@ -1,0 +1,14 @@
+code: "sed-heredoc-norm"
+title: "Config Sanitization with sed"
+description: "Edit a config file in place — remove comments and blank lines, and toggle a setting."
+difficulty: "INTERMEDIATE"
+category: "TEXT_PROCESSING"
+tags:
+  - "sed"
+  - "text-processing"
+  - "config"
+image: "ghcr.io/programming-sai/clice/challenges/sed-heredoc-norm:latest"
+objectives:
+  - "Remove all comment lines starting with # from /workspace/data/app.conf"
+  - "Remove all empty lines from /workspace/data/app.conf"
+  - "Change DEBUG_MODE=true to DEBUG_MODE=false in the same file"

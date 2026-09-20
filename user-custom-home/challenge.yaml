@@ -1,0 +1,14 @@
+code: "user-custom-home"
+title: "Custom User Home and Shell"
+description: "Create a user with a specific home directory, login shell, and UID."
+difficulty: "INTERMEDIATE"
+category: "SYSTEM_ADMINISTRATION"
+tags:
+  - "useradd"
+  - "users-and-permissions"
+  - "getent"
+image: "ghcr.io/programming-sai/clice/challenges/user-custom-home:latest"
+objectives:
+  - "Create user cliceuser with home /opt/cliceuser, shell /bin/bash, UID 1500"
+  - "Ensure home directory exists and is owned by cliceuser:cliceuser"
+  - "Verify getent passwd shows cliceuser:x:1500:1500::/opt/cliceuser:/bin/bash"

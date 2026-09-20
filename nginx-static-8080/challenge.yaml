@@ -1,0 +1,15 @@
+code: "nginx-static-8080"
+title: "Nginx Static Site on 8080"
+description: "Configure Nginx to serve static content on port 8080."
+difficulty: "INTERMEDIATE"
+category: "SYSTEM_ADMINISTRATION"
+tags:
+  - "nginx"
+  - "web-server"
+  - "curl"
+  - "networking"
+image: "ghcr.io/programming-sai/clice/challenges/nginx-static-8080:latest"
+objectives:
+  - "Create /data/www/index.html containing exactly 'hello, clice'"
+  - "Configure Nginx to serve /data/www on port 8080"
+  - "Ensure curl http://localhost:8080 returns hello, clice"

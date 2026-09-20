@@ -1,0 +1,11 @@
+name|region|amount|date
+alice|north|120|2026-01-01
+bob|south|200|2026-01-02
+carol|north|80|2026-01-03
+dave|east|150|2026-01-04
+eve|south|180|2026-01-05
+frank|east|90|2026-01-06
+grace|north|110|2026-01-07
+heidi|south|220|2026-01-08
+ivan|east|130|2026-01-09
+judy|north|95|2026-01-10

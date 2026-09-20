@@ -1,0 +1,15 @@
+code: "perm-numeric-764"
+title: "Numeric Permission 764"
+description: "Apply exact numeric permissions to a file using chmod."
+difficulty: "BEGINNER"
+category: "FILE_MANIPULATION"
+tags:
+  - "chmod"
+  - "permissions"
+  - "stat"
+  - "file-manipulation"
+image: "ghcr.io/programming-sai/clice/challenges/perm-numeric-764:latest"
+objectives:
+  - "Create file /workspace/output.txt with any content"
+  - "Set permissions so owner has rwx (7), group has rw- (6), others have r-- (4) — mode 764"
+  - "Verify with stat -c '%a' that the mode is exactly 764"

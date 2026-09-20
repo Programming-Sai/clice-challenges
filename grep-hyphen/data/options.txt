@@ -1,0 +1,7 @@
+--help
+-v
+--verbose
+-k 2048
+--output result.txt
+-f
+--force

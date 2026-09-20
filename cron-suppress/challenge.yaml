@@ -1,0 +1,14 @@
+code: "cron-suppress"
+title: "Cron Job with Output Suppression"
+description: "Create a recurring cron job that discards all output to prevent mail generation."
+difficulty: "INTERMEDIATE"
+category: "SYSTEM_ADMINISTRATION"
+tags:
+  - "cron"
+  - "crontab"
+  - "scheduling"
+image: "ghcr.io/programming-sai/clice/challenges/cron-suppress:latest"
+objectives:
+  - "Create executable script /workspace/job.sh that appends the current date to /workspace/log.txt"
+  - "Add a cron entry that runs every 5 minutes as: */5 * * * * /workspace/job.sh >/dev/null 2>&1"
+  - "Verify the entry is visible via crontab -l or spool file"

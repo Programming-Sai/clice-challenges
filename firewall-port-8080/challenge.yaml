@@ -1,0 +1,14 @@
+code: "firewall-port-8080"
+title: "Firewall Port 8080"
+description: "Open a TCP port permanently in firewalld."
+difficulty: "BEGINNER"
+category: "SYSTEM_ADMINISTRATION"
+tags:
+  - "firewalld"
+  - "firewall-cmd"
+  - "networking"
+image: "ghcr.io/programming-sai/clice/challenges/firewall-port-8080:latest"
+objectives:
+  - "Add TCP port 8080 to the public zone permanently"
+  - "Reload or ensure config is written"
+  - "Verify port is listed via offline check or config file"

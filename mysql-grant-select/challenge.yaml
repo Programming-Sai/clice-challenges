@@ -1,0 +1,16 @@
+code: "mysql-grant-select"
+title: "MariaDB User Grants"
+description: "Create a database user and grant specific privileges."
+difficulty: "INTERMEDIATE"
+category: "SYSTEM_ADMINISTRATION"
+tags:
+  - "mariadb"
+  - "mysql"
+  - "database"
+  - "privileges"
+image: "ghcr.io/programming-sai/clice/challenges/mysql-grant-select:latest"
+objectives:
+  - "Start MariaDB service"
+  - "Create database appdb"
+  - "Create user appuser@localhost identified by SecurePass123!"
+  - "Grant SELECT and INSERT on appdb.* to that user"

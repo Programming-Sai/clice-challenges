@@ -1,0 +1,15 @@
+code: "awk-sales-aggregate"
+title: "Sales Region Aggregation"
+description: "Use awk to find the region with the highest total sales from a delimited dataset."
+difficulty: "INTERMEDIATE"
+category: "TEXT_PROCESSING"
+tags:
+  - "awk"
+  - "aggregation"
+  - "csv"
+  - "text-processing"
+image: "ghcr.io/programming-sai/clice/challenges/awk-sales-aggregate:latest"
+objectives:
+  - "Read pipe-delimited /workspace/data/sales.csv (skip header)"
+  - "Sum the amount column (field 3) per region (field 2)"
+  - "Write only the region name with the highest total to /workspace/output.txt"
