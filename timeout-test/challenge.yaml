@@ -10,4 +10,4 @@ tags:
   - stress-test
 objectives:
   - Type any command and submit - the checker itself is what's being tested here
-image: ubuntu:22.04
+image: "ghcr.io/programming-sai/clice-challenges/timeout-test:latest"
