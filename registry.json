@@ -2,7 +2,7 @@
   "total": 14,
   "challenges": [
     {
-      "id": "034cf633-4473-4082-ae1e-b1629e79a258",
+      "id": "5405585a-c55a-40a6-94b4-afa82016486b",
       "code": "grep-hyphen",
       "title": "Grep Hyphen Pattern",
       "description": "Search for a string beginning with a hyphen without triggering option parsing.",
@@ -23,7 +23,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/grep-hyphen/check.sh"
     },
     {
-      "id": "97012417-fc39-4553-9ed2-650de2ab2214",
+      "id": "892048da-813b-473e-96d5-76de3c7f2782",
       "code": "firewall-port-8080",
       "title": "Firewall Port 8080",
       "description": "Open a TCP port permanently in firewalld.",
@@ -45,7 +45,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/firewall-port-8080/check.sh"
     },
     {
-      "id": "4355d9dc-0126-4aad-adb9-d4100a448d18",
+      "id": "deb484de-614a-464d-bed8-f117325e67d0",
       "code": "cron-suppress",
       "title": "Cron Job with Output Suppression",
       "description": "Create a recurring cron job that discards all output to prevent mail generation.",
@@ -67,7 +67,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/cron-suppress/check.sh"
     },
     {
-      "id": "cd36b865-25e9-4ae8-93ba-a8163fa38c9c",
+      "id": "8d910987-85dd-4827-af40-adc254fb4bf4",
       "code": "mysql-grant-select",
       "title": "MariaDB User Grants",
       "description": "Create a database user and grant specific privileges.",
@@ -91,7 +91,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/mysql-grant-select/check.sh"
     },
     {
-      "id": "ffeceb04-dd0e-4979-bbd1-dde4d9635704",
+      "id": "f27d9190-9854-420f-938f-83681f3b6afc",
       "code": "timeout-test",
       "title": "(Stress Test) Checker Timeout",
       "description": "Internal stress-test challenge - the checker deliberately hangs and floods stdout to verify checker_timeout is actually enforced.",
@@ -110,7 +110,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/timeout-test/check.sh"
     },
     {
-      "id": "e8f63928-527e-4cc0-a191-52163eeebc8f",
+      "id": "55f3c9b3-7cdf-4b4b-ae1f-64c2cc5e9752",
       "code": "user-custom-home",
       "title": "Custom User Home and Shell",
       "description": "Create a user with a specific home directory, login shell, and UID.",
@@ -132,7 +132,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/user-custom-home/check.sh"
     },
     {
-      "id": "04ea1982-b872-4582-b71c-ff432c583c8c",
+      "id": "4a73b29a-d9f8-4d2e-b0bb-d3969bb7121e",
       "code": "failed-login-audit",
       "title": "Failed Login Investigation",
       "description": "Analyze a web server access log to find which IP address is responsible for the most failed login attempts.",
@@ -156,7 +156,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/failed-login-audit/check.sh"
     },
     {
-      "id": "b47519ac-8eb5-4478-ade7-c676acb33130",
+      "id": "7bd509d8-5ecd-4d33-b2c3-44def762a152",
       "code": "perm-numeric-764",
       "title": "Numeric Permission 764",
       "description": "Apply exact numeric permissions to a file using chmod.",
@@ -179,7 +179,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/perm-numeric-764/check.sh"
     },
     {
-      "id": "53c30a22-0050-42d5-8c13-db3f2949c9dc",
+      "id": "18036342-67b8-4149-849e-6df6881509a2",
       "code": "nginx-static-8080",
       "title": "Nginx Static Site on 8080",
       "description": "Configure Nginx to serve static content on port 8080.",
@@ -202,7 +202,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/nginx-static-8080/check.sh"
     },
     {
-      "id": "507a725a-1741-4e9b-8da0-6fc86e73f63c",
+      "id": "23b49369-3f15-4068-b640-02bee0eed043",
       "code": "ghost-service",
       "title": "Ghost Service",
       "description": "Stand up a small HTTP service inside this container, running as an unprivileged user, that keeps answering health checks even after your interactive session ends.",
@@ -226,7 +226,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/ghost-service/check.sh"
     },
     {
-      "id": "99ce1ee1-6927-47a8-9fbf-484ad0cfbf01",
+      "id": "e95b225c-eeb1-4449-93ce-c324397a4e80",
       "code": "sed-heredoc-norm",
       "title": "Config Sanitization with sed",
       "description": "Edit a config file in place \u2014 remove comments and blank lines, and toggle a setting.",
@@ -248,7 +248,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/sed-heredoc-norm/check.sh"
     },
     {
-      "id": "f5793323-092e-41d2-8349-17bb4bdc7c8b",
+      "id": "7c2fceba-4f96-46f9-bf6c-94f92a0372ab",
       "code": "hello-clice",
       "title": "Hello CLICE Challenge",
       "description": "Create a file called output.txt containing exactly 'Hello clice'",
@@ -269,7 +269,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/hello-clice/check.sh"
     },
     {
-      "id": "3eaf7d5e-bcd7-4308-94db-a0f35df57e4f",
+      "id": "a68ad54c-572c-4b2d-9da2-6b3a4166a539",
       "code": "awk-sales-aggregate",
       "title": "Sales Region Aggregation",
       "description": "Use awk to find the region with the highest total sales from a delimited dataset.",
@@ -292,7 +292,7 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/awk-sales-aggregate/check.sh"
     },
     {
-      "id": "6db2ba35-c8d5-450a-9b18-b722c633b0f5",
+      "id": "abe8dc5f-434a-48a2-88a1-7a4c802ea743",
       "code": "dns-forward-zone",
       "title": "BIND Forward Zone",
       "description": "Configure BIND to resolve a custom domain to an IP address.",
