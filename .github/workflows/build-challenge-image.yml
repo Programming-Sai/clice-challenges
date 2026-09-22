@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       fresh_build:
-        description: "Ignore build cache for a clean rebuild of all 14 images"
+        description: "Ignore build cache for all 14 challenges on BOTH architectures"
         type: boolean
         required: false
         default: false
@@ -68,8 +68,9 @@ jobs:
           done
 
   build:
+    name: Build and smoke-test ${{ matrix.challenge }} (${{ matrix.target.arch }})
     needs: discover
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.target.runner }}
     timeout-minutes: 90
     permissions:
       contents: read
@@ -78,8 +79,31 @@ jobs:
       fail-fast: false
       matrix:
         challenge: ${{ fromJson(needs.discover.outputs.challenges) }}
+        target:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    env:
+      IMAGE: ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }}
+      ARCH: ${{ matrix.target.arch }}
+      CHALLENGE: ${{ matrix.challenge }}
     steps:
       - uses: actions/checkout@v4
+      - name: Confirm native runner and Docker engine architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          normalize_arch() {
+            case "$1" in
+              x86_64|amd64) printf 'amd64' ;;
+              aarch64|arm64) printf 'arm64' ;;
+              *) printf '%s' "$1" ;;
+            esac
+          }
+          test "$(normalize_arch "$(uname -m)")" = "$ARCH"
+          test "$(normalize_arch "$(docker info --format '{{.Architecture}}')")" = "$ARCH"
+          echo "Native host and Docker engine confirmed: $ARCH"
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
@@ -88,29 +112,178 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push ${{ matrix.challenge }}
+      - name: Build and push platform image by digest (not latest)
+        id: image
         uses: docker/build-push-action@v6
         with:
           context: ./${{ matrix.challenge }}
-          # This reset retains the current amd64 target. ARM is a separate
-          # follow-up, after checking multi-arch support for each base image.
-          platforms: linux/amd64
-          push: true
+          platforms: linux/${{ matrix.target.arch }}
           pull: true
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.fresh_build }}
-          # One cache scope per challenge avoids matrix jobs overwriting it.
-          cache-from: type=gha,scope=${{ matrix.challenge }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.challenge }},ignore-error=true
+          # Separate caches prevent the two architectures overwriting each other.
+          cache-from: type=gha,scope=${{ matrix.challenge }}-${{ matrix.target.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.challenge }}-${{ matrix.target.arch }},ignore-error=true
           labels: |
             org.opencontainers.image.source=https://github.com/Programming-Sai/clice-challenges
             org.opencontainers.image.revision=${{ github.sha }}
-          tags: |
-            ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }}:latest
-            ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }}:${{ github.sha }}
+          outputs: type=image,name=ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }},push-by-digest=true,name-canonical=true,push=true
+      - name: Native container smoke test
+        shell: bash
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          ref="$IMAGE@$DIGEST"
+          docker pull --platform "linux/$ARCH" "$ref"
+          actual=$(docker image inspect --format '{{.Architecture}}' "$ref")
+          test "$actual" = "$ARCH"
+
+          # Use Clice's keep-alive pattern. No QEMU and no host mounts.
+          cid=""
+          cleanup() {
+            if [ -n "$cid" ]; then docker rm -f "$cid" >/dev/null 2>&1 || true; fi
+          }
+          trap cleanup EXIT
+          cid=$(docker run --detach --platform "linux/$ARCH" \
+            --network none --memory 512m --cpus 1 \
+            "$ref" tail -f /dev/null)
+          docker exec "$cid" /bin/bash -c \
+            'set -e; test -d /workspace; for tool in bash tail cat chmod stat; do command -v "$tool" >/dev/null || exit 1; done; printf "native shell ready\n"'
+          docker cp "$CHALLENGE/check.sh" "$cid:/tmp/clice-check.sh"
+          docker exec "$cid" /bin/bash -n /tmp/clice-check.sh
+
+          # Exercise a real checker on both architectures. This is not a
+          # full Clice app/TUI integration test or coverage of all checkers.
+          if [ "$CHALLENGE" = hello-clice ]; then
+            docker exec "$cid" /bin/bash -c 'rm -f /workspace/output.txt'
+            set +e
+            docker exec "$cid" /bin/bash /tmp/clice-check.sh
+            result=$?
+            set -e
+            test "$result" -eq 1
+            docker exec "$cid" /bin/bash -c 'printf "Hello clice\n" > /workspace/output.txt'
+            docker exec "$cid" /bin/bash /tmp/clice-check.sh
+            echo "hello-clice rejected missing work and accepted correct work on $ARCH"
+          fi
+      - name: Save tested image digest
+        shell: bash
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          mkdir -p digests
+          printf '%s\n' "$DIGEST" > "digests/$CHALLENGE-$ARCH.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.challenge }}-${{ matrix.target.arch }}
+          path: digests/*.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  merge:
+    name: Assemble multi-platform ${{ matrix.challenge }}
+    needs: [discover, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        challenge: ${{ fromJson(needs.discover.outputs.challenges) }}
+    env:
+      IMAGE: ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }}
+      CHALLENGE: ${{ matrix.challenge }}
+      STAGING_TAG: candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: digest-${{ matrix.challenge }}-*
+          path: digests
+          merge-multiple: true
+      - name: Assemble candidate index from this run's tested digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          amd64=$(cat "digests/$CHALLENGE-amd64.txt")
+          arm64=$(cat "digests/$CHALLENGE-arm64.txt")
+          [[ "$amd64" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "$arm64" =~ ^sha256:[0-9a-f]{64}$ ]]
+          docker buildx imagetools create \
+            --tag "$IMAGE:$STAGING_TAG" \
+            "$IMAGE@$amd64" "$IMAGE@$arm64"
+      - name: Require both runnable platforms (attestations do not count)
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "$IMAGE:$STAGING_TAG" --raw > index.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          index = json.loads(Path('index.json').read_text())
+          actual = {
+              (m.get('platform', {}).get('os'), m.get('platform', {}).get('architecture'))
+              for m in index.get('manifests', [])
+          }
+          required = {('linux', 'amd64'), ('linux', 'arm64')}
+          if not required.issubset(actual):
+              raise SystemExit(f'Missing runnable platforms: {required - actual}')
+          print('Confirmed linux/amd64 AND linux/arm64')
+          PY
+
+  promote:
+    name: Promote all validated multi-platform tags
+    needs: [discover, merge]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      CHALLENGES: ${{ needs.discover.outputs.challenges }}
+      STAGING_TAG: candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update latest and source-commit tags only after every candidate passes
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r challenge; do
+            image="ghcr.io/programming-sai/clice-challenges/$challenge"
+            docker buildx imagetools create \
+              --tag "$image:latest" \
+              --tag "$image:$SOURCE_SHA" \
+              "$image:$STAGING_TAG"
+            docker buildx imagetools inspect "$image:latest" --raw > index.json
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          index = json.loads(Path('index.json').read_text())
+          actual = {
+              (m.get('platform', {}).get('os'), m.get('platform', {}).get('architecture'))
+              for m in index.get('manifests', [])
+          }
+          if not {('linux', 'amd64'), ('linux', 'arm64')}.issubset(actual):
+              raise SystemExit('Published tag is missing a runnable platform')
+          PY
+          done < <(printf '%s' "$CHALLENGES" | jq -r '.[]')
 
   publish-registry:
-    name: Publish registry after all 14 image builds succeed
-    needs: [discover, build]
+    name: Publish registry after multi-platform promotion
+    needs: [discover, promote]
     runs-on: ubuntu-latest
     permissions:
       contents: write
