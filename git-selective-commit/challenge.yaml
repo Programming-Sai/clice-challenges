@@ -1,0 +1,15 @@
+code: "git-selective-commit"
+title: "Commit What Matters"
+description: "Commit your new source file, and keep the noisy log file out of the repo with .gitignore."
+difficulty: "BEGINNER"
+category: "VERSION_CONTROL"
+tags:
+  - "git"
+  - "add"
+  - "commit"
+  - "gitignore"
+image: "ghcr.io/programming-sai/clice-challenges/git-selective-commit:latest"
+objectives:
+  - "In /workspace/project, commit the new file app.py"
+  - "Make git ignore debug.log using a committed .gitignore (do not delete the file)"
+  - "Finish with a clean working tree (git status shows nothing to commit)"

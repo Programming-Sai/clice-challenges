@@ -1,0 +1,15 @@
+code: "git-merge-conflict"
+title: "Resolve the Merge Conflict"
+description: "Merge a feature branch into main, resolve the conflict by hand, and keep everyone's work."
+difficulty: "INTERMEDIATE"
+category: "VERSION_CONTROL"
+tags:
+  - "git"
+  - "merge"
+  - "branches"
+  - "conflict-resolution"
+image: "ghcr.io/programming-sai/clice-challenges/git-merge-conflict:latest"
+objectives:
+  - "In /workspace/cafe, merge the student-prices branch into main"
+  - "Resolve the conflict so the Coffee line shows both the new price (15) and the student price (12)"
+  - "Keep every other change from both branches, leave no conflict markers, and finish the merge commit"
