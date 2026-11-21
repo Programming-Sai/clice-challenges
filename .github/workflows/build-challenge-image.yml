@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       fresh_build:
-        description: "Ignore build cache for all 14 challenges on BOTH architectures"
+        description: "Ignore build cache for every challenge on BOTH architectures"
         type: boolean
         required: false
         default: false
@@ -30,36 +30,56 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install pyyaml
-      - name: Validate the 14 canonical challenge images
+      - name: Discover and validate challenges
         id: find
         shell: bash
         run: |
           python - <<'PY'
           import json
           import os
+          import subprocess
+          import sys
           from pathlib import Path
           import yaml
 
-          expected = {
-              "awk-sales-aggregate", "cron-suppress", "dns-forward-zone",
-              "failed-login-audit", "firewall-port-8080", "ghost-service",
-              "grep-hyphen", "hello-clice", "mysql-grant-select",
-              "nginx-static-8080", "perm-numeric-764", "sed-heredoc-norm",
-              "timeout-test", "user-custom-home",
-          }
-          folders = {p.parent.name for p in Path('.').glob('*/Dockerfile')}
-          if folders != expected:
-              raise SystemExit(f"Unexpected challenge set: missing={expected-folders}, extra={folders-expected}")
-          metadata_folders = {p.parent.name for p in Path('.').glob('*/challenge.yaml')}
-          if metadata_folders != expected:
-              raise SystemExit("Metadata folders and the 14 image folders must match")
-          for code in sorted(expected):
-              config = yaml.safe_load(Path(code, 'challenge.yaml').read_text(encoding='utf-8-sig'))
+          # A challenge is any top-level folder containing a Dockerfile.
+          # Nothing is hard-coded: add a folder and it is built automatically.
+          folders = sorted(p.parent.name for p in Path('.').glob('*/Dockerfile'))
+          if not folders:
+              raise SystemExit("No challenge folders (folders with a Dockerfile) found")
+
+          metadata = {p.parent.name for p in Path('.').glob('*/challenge.yaml')}
+          no_yaml = sorted(set(folders) - metadata)
+          no_dockerfile = sorted(metadata - set(folders))
+          if no_yaml or no_dockerfile:
+              raise SystemExit(
+                  f"Dockerfile/challenge.yaml mismatch: "
+                  f"Dockerfile but no challenge.yaml={no_yaml}; "
+                  f"challenge.yaml but no Dockerfile={no_dockerfile}"
+              )
+
+          errors = []
+          for code in folders:
+              config = yaml.safe_load(Path(code, 'challenge.yaml').read_text(encoding='utf-8-sig')) or {}
               image = f"ghcr.io/programming-sai/clice-challenges/{code}:latest"
               if config.get('code') != code or config.get('image') != image:
-                  raise SystemExit(f"{code}: expected matching code and image {image}")
+                  errors.append(f"{code}: 'code' must equal the folder name and 'image' must be {image}")
+              if not Path(code, 'check.sh').is_file():
+                  errors.append(f"{code}: missing check.sh")
+          if errors:
+              raise SystemExit("\n".join(errors))
+
+          # Fail fast: registry.py silently skips invalid challenges, which would
+          # otherwise only be noticed after every image has been built.
+          subprocess.run([sys.executable, 'registry.py'], check=True)
+          registered = {c['code'] for c in json.loads(Path('registry.json').read_text())['challenges']}
+          rejected = sorted(set(folders) - registered)
+          if rejected:
+              raise SystemExit(f"registry.py rejected these challenges (see its output above): {rejected}")
+
+          print(f"Found {len(folders)} challenges: {', '.join(folders)}")
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
-              output.write('challenges=' + json.dumps(sorted(expected)) + '\n')
+              output.write('challenges=' + json.dumps(folders) + '\n')
           PY
       - name: Check checker shell syntax
         run: |
@@ -302,7 +322,7 @@ jobs:
           registry = json.loads(Path('registry.json').read_text())
           expected = {p.parent.name for p in Path('.').glob('*/Dockerfile')}
           entries = registry['challenges']
-          if registry['total'] != 14 or len(entries) != 14 or {c['code'] for c in entries} != expected:
+          if registry['total'] != len(entries) or len(entries) != len(expected) or {c['code'] for c in entries} != expected:
               raise SystemExit('Refusing to publish an incomplete registry')
           for c in entries:
               if c['image'] != f"ghcr.io/programming-sai/clice-challenges/{c['code']}:latest":
