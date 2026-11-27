@@ -1,0 +1,22 @@
+{
+  "challenges": {
+    "awk-sales-aggregate": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "cron-suppress": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "dns-forward-zone": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "failed-login-audit": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "firewall-port-8080": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "ghost-service": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "git-merge-conflict": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "git-selective-commit": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "grep-hyphen": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "hello-clice": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "mysql-grant-select": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "nginx-static-8080": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "perm-numeric-764": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "read-before-you-touch": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "sed-heredoc-norm": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "timeout-test": "bac6dad04f9c150bff2a76b98dc36576189bb825",
+    "user-custom-home": "bac6dad04f9c150bff2a76b98dc36576189bb825"
+  },
+  "updated": "bac6dad04f9c150bff2a76b98dc36576189bb825"
+}
