@@ -7,12 +7,12 @@
 
 ## What you are walking into
 
-You are the new engineer at **Kente Courier Services**. You inherit:
+You are the new engineer at **Kente Courier Services**. You log in as `engineer` (sudo is yours, as the policy says) and land in your home directory. You inherit:
 
-- a Git repository of the departed engineer's scripts, checked out at `/workspace/kente-repo`
+- a Git repository of the departed engineer's scripts, checked out at `~/kente-repo`
   (origin is `/srv/git/kente-app.git`; the work waiting for release lives on `feature/eta-display`),
 - the application server itself, which in this exercise is **this same container**, and
-- the server configuration policy: `/workspace/docs/SERVER-POLICY.md`.
+- the server configuration policy: `~/docs/SERVER-POLICY.md`.
 
 Two pieces of the automation have already caused an argument: one person is sure a script is buggy, another insists
 it is intentional. Somewhere across the repo and the server something is **genuinely broken**, and something is
@@ -39,6 +39,7 @@ Things to know about this training server:
   real rules.
 - Docker manages `/etc/hosts` and `/etc/hostname` here. Edit them **in place** (for example with `tee` or `>`);
   `sed -i` can fail with "Device or resource busy".
+- Like on a real server, `sudo` prints a warning if the machine's hostname is not in `/etc/hosts`; that is a warning, not a failure.
 - Your remote refuses commits whose author email is not a company or GitHub no-reply address, and refuses
   non-fast-forward pushes. Fix problems the way you would on a shared repository.
 - The scripts in `scripts/` are not marked executable in Git; the README's `sudo scripts/deploy.sh` is not

@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Verifies the whole "Read It Before You Touch It" handover: the repo, the server audit, the network fault.
 # Runs as root inside the challenge container. Exit 0 only if everything passes.
-[ "$(id -u)" = 0 ] || exec sudo -n bash "$0" "$@"
+if [ "$(id -u)" != 0 ]; then
+  sudo -n true 2>/dev/null || { echo "  [FAIL] 2.3 engineer can no longer use sudo, so the server cannot be verified"; exit 1; }
+  out=$(sudo -n env KENTE_CHECK_IGNORE_PORTS="${KENTE_CHECK_IGNORE_PORTS:-}" bash "$0" "$@" 2>/tmp/.kente_err); rc=$?
+  printf '%s\n' "$out"; grep -v 'unable to resolve host' /tmp/.kente_err >&2; rm -f /tmp/.kente_err
+  exit $rc
+fi
 
-REPO=/workspace/kente-repo
+REPO=/home/engineer/kente-repo
 REMOTE=/srv/git/kente-app.git
 SEED_MAIN=7e2bcebf146f6baeb3b6bed8620f3995801f5a8f
 WIP=f3eda317030198f49696bc320336ae4c8ba5761c
@@ -31,7 +36,7 @@ MAIN=$($G rev-parse main 2>/dev/null)
 [ "$MAIN" != "$SEED_MAIN" ] && ok "main on origin has moved on from the inherited state" || bad "nothing has been pushed to origin/main yet"
 chk "inherited history is intact (main was never rewritten)" $G merge-base --is-ancestor $SEED_MAIN main
 chk "local checkout is on main and equals origin/main" test "$(git -C $REPO rev-parse HEAD 2>/dev/null)" = "$MAIN"
-chk "working tree is clean (nothing uncommitted or unresolved)" test -z "$(git -C $REPO status --porcelain 2>/dev/null)"
+chk "working tree is clean (nothing uncommitted or unresolved)" test -z "$(git --no-optional-locks -C $REPO status --porcelain 2>/dev/null)"
 
 # memo before the first change to inherited files
 mapfile -t ALL < <($G rev-list --reverse --topo-order "$SEED_MAIN..main" 2>/dev/null)
