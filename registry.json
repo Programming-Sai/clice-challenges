@@ -2,36 +2,12 @@
   "total": 17,
   "challenges": [
     {
-      "id": "b1313008-bdb9-42f4-a8ac-72b8c637c7b2",
-      "code": "ghost-service",
-      "title": "Ghost Service",
-      "description": "Stand up a small HTTP service inside this container, running as an unprivileged user, that keeps answering health checks even after your interactive session ends.",
-      "difficulty": "ADVANCED[###]",
-      "category": "SYSTEM_ADMINISTRATION",
-      "tags": [
-        "process-management",
-        "users-and-permissions",
-        "networking",
-        "services"
-      ],
-      "objectives": [
-        "Create a non-root system user named svc-runner",
-        "Get an HTTP service listening on port 9000, running as svc-runner (not root)",
-        "The service must respond to GET /health with a JSON body containing \"status\":\"ok\" and \"service\":\"clice\"",
-        "The service must still be running and answering after you exit your shell (verification happens after your session ends, not during it)"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/ghost-service:latest",
-      "markdown": "# Ghost Service\n\n## Objective\n\nGet a small HTTP service running inside this container that:\n\n1. Runs as a **non-root** system user named `svc-runner` (not root, not\n   your default user).\n2. Listens on **TCP port 9000**.\n3. Responds to `GET /health` with a JSON body containing\n   `\"status\": \"ok\"` and `\"service\": \"clice\"` (formatting/whitespace\n   doesn't matter, the fields just need to be present with those values).\n4. **Keeps running after your shell session ends.** Verification happens\n   once you submit, not while you're still connected \u2014 if your service\n   dies the moment your interactive shell exits, it won't be running by\n   the time it's checked.\n\nThere is no file to write anywhere for this one. Everything is checked\nby inspecting live process, user, and network state.\n\n## Tools available in this image\n\n`python3`, `curl`, `netcat-openbsd`, `socat`, `sudo`, `iproute2`,\n`procps` \u2014 pick whatever combination gets you there. There is more than\none valid way to build the service itself and more than one valid way\nto keep it alive after your shell exits.\n\n## Notes\n\n- Think about what actually happens to a background process when the\n  shell that launched it terminates.\n- Running the service as root is the easy way and will fail the check \u2014\n  the whole point is doing it as an unprivileged user.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/ghost-service/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/ghost-service/check.sh"
-    },
-    {
-      "id": "3293954b-ba38-4ade-b663-e2fedb3f848f",
+      "id": "00af5fa1-4eaa-45c0-8ca4-974332be5fbf",
       "code": "read-before-you-touch",
       "title": "Read It Before You Touch It",
       "description": "Your predecessor quit with zero handover. You inherit a Git repository of automation scripts and a Linux server nobody ever documented, and a dispatch release due Monday is blocked. Work out, with evidence, what is genuinely broken versus what only looks wrong. Fix the first, leave every safeguard alone, audit the server against its policy, and write down what the next engineer must never \"clean up\".",
       "difficulty": "ADVANCED[###]",
-      "category": "DEVOPS",
+      "category": "SYSTEM_ADMINISTRATION",
       "tags": [
         "git",
         "linux-administration",
@@ -45,19 +21,200 @@
         "Find the one genuinely broken script and fix its cause (not a workaround), then prove it with a real backup in /backups",
         "Leave every load-bearing workaround intact - a rougher fix that keeps every safeguard beats a perfect one that removes one",
         "Merge feature/eta-display into main cleanly (both sides' release notes kept, no conflict markers or CRLF) and push to origin without rewriting shared history; the untested WIP snapshot must never reach main",
-        "Audit the server against /workspace/docs/SERVER-POLICY.md and fix every finding with least privilege - never widen permissions",
+        "Audit the server against ~/docs/SERVER-POLICY.md and fix every finding with least privilege - never widen permissions",
         "The instructor account must stay exactly as it is, and a leaver's home folder is evidence - keep it",
         "Fix the network fault at its cause so that /health returns ok (HTTP 200) - do not bypass the health check or the name",
         "Everything must survive a reboot (verification simulates one)",
         "Commit a HANDOVER.md to main naming the load-bearing workaround and why, your branching convention, and how CALMS and DORA connect to this work"
       ],
       "image": "ghcr.io/programming-sai/clice-challenges/read-before-you-touch:latest",
-      "markdown": "# Read It Before You Touch It\n\n> **Dispatch Manager:** \"Our only ops person quit with zero handover. I've inherited a repo of scripts that\n> route our drivers and a server nobody ever wrote anything down about. Some of it looks like junk to me, but\n> I've seen someone rip out a 'junk' workaround before and it cost us three days of missed pickups - so figure\n> out what's real before you change anything. We have a dispatch update going out Monday and it's blocked.\"\n\n## What you are walking into\n\nYou are the new engineer at **Kente Courier Services**. You inherit:\n\n- a Git repository of the departed engineer's scripts, checked out at `/workspace/kente-repo`\n  (origin is `/srv/git/kente-app.git`; the work waiting for release lives on `feature/eta-display`),\n- the application server itself, which in this exercise is **this same container**, and\n- the server configuration policy: `/workspace/docs/SERVER-POLICY.md`.\n\nTwo pieces of the automation have already caused an argument: one person is sure a script is buggy, another insists\nit is intentional. Somewhere across the repo and the server something is **genuinely broken**, and something is\nstopping parts of the system talking to each other. Your job is not to rewrite what you find distasteful. It is to\nprove, with evidence, what is wrong versus what only looks wrong - and fix the former without touching the latter.\n\n## Before you touch anything\n\nWrite a short `MEMO.md` and push it to `origin/main` **before your first commit that changes an inherited file**:\nwhat you believe each disputed piece of code does, whether it is safe to change or must be preserved (with\nspecific evidence: a comment, a log pattern, observed behaviour - not a guess), and what you expect the server\naudit to find before you run it.\n\n## The server\n\nEvidence is yours to gather: the logs are in `/var/log/kente-app`, the service units in `/etc/systemd/system`,\nand the policy tells you the required state. Record the command and output for every finding you fix.\n\nThings to know about this training server:\n\n- `systemctl`, `journalctl`, `hostnamectl`, `ufw` and `reboot` are **stand-ins** (a container has no systemd and cannot\n  load kernel firewall rules). They behave like the real tools and keep real state, so use them as you would on a server.\n  `reboot` simulates a reboot: services come back only if they are enabled, and hostname handling follows the\n  real rules.\n- Docker manages `/etc/hosts` and `/etc/hostname` here. Edit them **in place** (for example with `tee` or `>`);\n  `sed -i` can fail with \"Device or resource busy\".\n- Your remote refuses commits whose author email is not a company or GitHub no-reply address, and refuses\n  non-fast-forward pushes. Fix problems the way you would on a shared repository.\n- The scripts in `scripts/` are not marked executable in Git; the README's `sudo scripts/deploy.sh` is not\n  guaranteed to work as written.\n\n## How you are checked\n\nVerification runs inside this container after your session and takes a few seconds. It simulates a reboot first, then checks\nthe repository on `origin`, every policy item, the network fix, and that every safeguard is still intact. Output\nnames the policy item that fails. It passes only when **everything** passes.\n\nNot machine-graded here, but part of the real lab: the quality of your memo and handover, your two ideas for\npreventing an undocumented handover, the AI-use and assumptions logs, and the live incident note.\n",
+      "markdown": "# Read It Before You Touch It\n\n> **Dispatch Manager:** \"Our only ops person quit with zero handover. I've inherited a repo of scripts that\n> route our drivers and a server nobody ever wrote anything down about. Some of it looks like junk to me, but\n> I've seen someone rip out a 'junk' workaround before and it cost us three days of missed pickups - so figure\n> out what's real before you change anything. We have a dispatch update going out Monday and it's blocked.\"\n\n## What you are walking into\n\nYou are the new engineer at **Kente Courier Services**. You log in as `engineer` (sudo is yours, as the policy says) and land in your home directory. You inherit:\n\n- a Git repository of the departed engineer's scripts, checked out at `~/kente-repo`\n  (origin is `/srv/git/kente-app.git`; the work waiting for release lives on `feature/eta-display`),\n- the application server itself, which in this exercise is **this same container**, and\n- the server configuration policy: `~/docs/SERVER-POLICY.md`.\n\nTwo pieces of the automation have already caused an argument: one person is sure a script is buggy, another insists\nit is intentional. Somewhere across the repo and the server something is **genuinely broken**, and something is\nstopping parts of the system talking to each other. Your job is not to rewrite what you find distasteful. It is to\nprove, with evidence, what is wrong versus what only looks wrong - and fix the former without touching the latter.\n\n## Before you touch anything\n\nWrite a short `MEMO.md` and push it to `origin/main` **before your first commit that changes an inherited file**:\nwhat you believe each disputed piece of code does, whether it is safe to change or must be preserved (with\nspecific evidence: a comment, a log pattern, observed behaviour - not a guess), and what you expect the server\naudit to find before you run it.\n\n## The server\n\nEvidence is yours to gather: the logs are in `/var/log/kente-app`, the service units in `/etc/systemd/system`,\nand the policy tells you the required state. Record the command and output for every finding you fix.\n\nThings to know about this training server:\n\n- `systemctl`, `journalctl`, `hostnamectl`, `ufw` and `reboot` are **stand-ins** (a container has no systemd and cannot\n  load kernel firewall rules). They behave like the real tools and keep real state, so use them as you would on a server.\n  `reboot` simulates a reboot: services come back only if they are enabled, and hostname handling follows the\n  real rules.\n- Docker manages `/etc/hosts` and `/etc/hostname` here. Edit them **in place** (for example with `tee` or `>`);\n  `sed -i` can fail with \"Device or resource busy\".\n- Like on a real server, `sudo` prints a warning if the machine's hostname is not in `/etc/hosts`; that is a warning, not a failure.\n- Your remote refuses commits whose author email is not a company or GitHub no-reply address, and refuses\n  non-fast-forward pushes. Fix problems the way you would on a shared repository.\n- The scripts in `scripts/` are not marked executable in Git; the README's `sudo scripts/deploy.sh` is not\n  guaranteed to work as written.\n\n## How you are checked\n\nVerification runs inside this container after your session and takes a few seconds. It simulates a reboot first, then checks\nthe repository on `origin`, every policy item, the network fix, and that every safeguard is still intact. Output\nnames the policy item that fails. It passes only when **everything** passes.\n\nNot machine-graded here, but part of the real lab: the quality of your memo and handover, your two ideas for\npreventing an undocumented handover, the AI-use and assumptions logs, and the live incident note.\n",
       "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/read-before-you-touch/",
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/read-before-you-touch/check.sh"
     },
     {
-      "id": "d398f0fc-4868-49b0-b35b-dbb1ae0aef17",
+      "id": "675ffc0f-2a54-4a13-9b9f-cc4fa0ba1d08",
+      "code": "git-merge-conflict",
+      "title": "Resolve the Merge Conflict",
+      "description": "Merge a feature branch into main, resolve the conflict by hand, and keep everyone's work.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "VERSION_CONTROL",
+      "tags": [
+        "git",
+        "merge",
+        "branches",
+        "conflict-resolution"
+      ],
+      "objectives": [
+        "In /workspace/cafe, merge the student-prices branch into main",
+        "Resolve the conflict so the Coffee line shows both the new price (15) and the student price (12)",
+        "Keep every other change from both branches, leave no conflict markers, and finish the merge commit"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/git-merge-conflict:latest",
+      "markdown": "# Resolve the Merge Conflict\n\n## Objective\n\nTwo people edited the same menu. Combine their work without losing either.\n\n## Scenario\n\n`/workspace/cafe` is a repo for a campus cafe's `menu.txt`. Two branches have diverged:\n\n- `main` raised the coffee price and added a new item.\n- `student-prices` added discounted prices.\n\nBoth changed the **same Coffee line**, so git can't decide for you.\n\n## Task\n\n1. Go to `/workspace/cafe` (you start there) and make sure you're on `main`.\n2. Merge `student-prices` into `main`.\n3. Git will stop with a conflict. Open `menu.txt` and resolve it.\n   - The Coffee line must show **both** the new regular price (15) and the student price (12).\n   - Every other change from both branches must be kept.\n4. Finish the merge with a commit.\n\n## Hints\n\n- `git status` tells you which files are in conflict.\n- Conflicted sections look like `<<<<<<<`, `=======`, `>>>>>>>`. Those markers must not remain in the final file.\n- You can edit files with `sed`, `echo`, or `cat > file`. (There's no interactive editor in this container.)\n- After editing, tell git the conflict is resolved with `git add`, then run `git commit`. The default merge message is used automatically.\n- Nothing here can hurt you. If it goes wrong, `git merge --abort` puts you back at the start.\n\n## Expected Outcome\n\n- `main` has a merge commit joining both branches\n- `menu.txt` has 6 lines, no conflict markers, and a Coffee line mentioning both prices\n- `git status` is clean\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/git-merge-conflict/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/git-merge-conflict/check.sh"
+    },
+    {
+      "id": "ada521d7-8bef-4742-8cf6-73fd9919fd37",
+      "code": "hello-clice",
+      "title": "Hello CLICE Challenge",
+      "description": "Create a file called output.txt containing exactly 'Hello clice'",
+      "difficulty": "BEGINNER[#--]",
+      "category": "FILE_MANIPULATION",
+      "tags": [
+        "bash",
+        "echo",
+        "file-creation"
+      ],
+      "objectives": [
+        "Create a file named `output.txt` in the `/workspace` directory",
+        "The file must contain the exact string 'Hello clice'"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/hello-clice:latest",
+      "markdown": "# Hello CLICE Challenge\n\n## Objective\n\nCreate a file called `output.txt` in your workspace containing exactly the string `Hello clice`.\n\n## Task\n\nThis is the simplest possible challenge to verify your CLI environment is working.\n\n1. Navigate to the `/workspace` directory if you're not already there.\n2. Use the `echo` command to write the text `Hello clice` to a file named `output.txt`.\n3. Verify the file exists and contains the correct text.\n\n## Hints\n\n- Use `echo` to write to a file: `echo \"text\" > filename`\n- Check your work with `cat output.txt`\n- You should see `Hello clice` printed to the terminal\n\n## Expected Outcome\n\nA file `/workspace/output.txt` with the exact contents:\n\n```bash\nHello clice\n```\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/hello-clice/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/hello-clice/check.sh"
+    },
+    {
+      "id": "c1471126-9360-4ab2-8621-deb21514bc93",
+      "code": "user-custom-home",
+      "title": "Custom User Home and Shell",
+      "description": "Create a user with a specific home directory, login shell, and UID.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "useradd",
+        "users-and-permissions",
+        "getent"
+      ],
+      "objectives": [
+        "Create user cliceuser with home /opt/cliceuser, shell /bin/bash, UID 1500",
+        "Ensure home directory exists and is owned by cliceuser:cliceuser",
+        "Verify getent passwd shows cliceuser:x:1500:1500::/opt/cliceuser:/bin/bash"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/user-custom-home:latest",
+      "markdown": "# Custom User Setup\n\n## Objective\nCreate a system user with specific attributes.\n\n## Task\nCreate a user named `cliceuser` with:\n- Home directory: `/opt/cliceuser`\n- Login shell: `/bin/bash`\n- UID: `1500`\n- Primary group: `cliceuser` (also GID `1500`)\n\nThe home directory must exist and be owned by this user. The account does not need a password.\n\n## Hints\n- There is a single command that can set home, shell, and UID together \u2014 check its options for creating the home directory automatically.\n- After creation, you can inspect the user\u2019s entry and the home directory\u2019s ownership.\n\n## Expected Outcome\n`getent passwd cliceuser` shows `cliceuser:x:1500:1500::/opt/cliceuser:/bin/bash` and `/opt/cliceuser` exists with correct ownership.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/user-custom-home/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/user-custom-home/check.sh"
+    },
+    {
+      "id": "c9885dad-d513-440e-8a6e-0c09cc56e018",
+      "code": "dns-forward-zone",
+      "title": "BIND Forward Zone",
+      "description": "Configure BIND to resolve a custom domain to an IP address.",
+      "difficulty": "ADVANCED[###]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "bind",
+        "dns",
+        "named",
+        "networking"
+      ],
+      "objectives": [
+        "Create forward zone for app.local resolving www.app.local to 192.168.1.100",
+        "Ensure named-checkconf and named-checkzone pass",
+        "Ensure dig @127.0.0.1 www.app.local returns 192.168.1.100"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/dns-forward-zone:latest",
+      "markdown": "# DNS Forward Zone\n\n## Objective\nConfigure a local BIND resolver to answer for `app.local`.\n\n## Task\nConfigure BIND to resolve `www.app.local` to `192.168.1.100`.\n\nYour zone should include:\n- A SOA record\n- An NS record for `ns1.app.local`\n- An A record for `ns1` (`192.168.1.10`)\n- An A record for `www` (`192.168.1.100`)\n\nAdd the zone to the BIND configuration, verify the configuration and zone file are valid, start the name server, and ensure it answers queries.\n\n## Hints\n- Zone files and BIND configuration live under `/etc/bind` on Ubuntu and `/etc` / `/var/named` on openEuler \u2014 check where your system expects them.\n- Two tools can validate your work before you start the server: one for the main config and one for the zone file.\n- Test with a direct query to `127.0.0.1` to avoid relying on external resolvers.\n\n## Expected Outcome\n`dig @127.0.0.1 www.app.local +short` returns `192.168.1.100` and both configuration checks pass.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/dns-forward-zone/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/dns-forward-zone/check.sh"
+    },
+    {
+      "id": "a1c03e53-f5ac-40b4-8e2d-d83c128c8ce5",
+      "code": "perm-numeric-764",
+      "title": "Numeric Permission 764",
+      "description": "Apply exact numeric permissions to a file using chmod.",
+      "difficulty": "BEGINNER[#--]",
+      "category": "FILE_MANIPULATION",
+      "tags": [
+        "chmod",
+        "permissions",
+        "stat",
+        "file-manipulation"
+      ],
+      "objectives": [
+        "Create file /workspace/output.txt with any content",
+        "Set permissions so owner has rwx (7), group has rw- (6), others have r-- (4) \u2014 mode 764",
+        "Verify with stat -c '%a' that the mode is exactly 764"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/perm-numeric-764:latest",
+      "markdown": "# Numeric Permission 764\n\n## Objective\nA file at `/workspace/output.txt` must exist and have permissions `764`.\n\n## Task\nCreate the file `/workspace/output.txt` (any content is fine) and configure its permissions so that:\n- Owner can read, write, and execute (`rwx`)\n- Group can read and write (`rw-`)\n- Others can read only (`r--`)\n\nIn octal, this combination is `764`. The checker will verify the numeric mode.\n\n## Hints\n- `stat` can show the current numeric mode of a file.\n- Permissions can be set using either symbolic (`u=rwx,g=rw,o=r`) or numeric (`764`) forms.\n\n## Expected Outcome\n`/workspace/output.txt` exists and its mode is `764`. Verify your work with `stat`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/perm-numeric-764/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/perm-numeric-764/check.sh"
+    },
+    {
+      "id": "081419d0-86bd-4208-84ce-c79fa38bf55a",
+      "code": "cron-suppress",
+      "title": "Cron Job with Output Suppression",
+      "description": "Create a recurring cron job that discards all output to prevent mail generation.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "cron",
+        "crontab",
+        "scheduling"
+      ],
+      "objectives": [
+        "Create executable script /workspace/job.sh that appends the current date to /workspace/log.txt",
+        "Add a cron entry that runs every 5 minutes as: */5 * * * * /workspace/job.sh >/dev/null 2>&1",
+        "Verify the entry is visible via crontab -l or spool file"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/cron-suppress:latest",
+      "markdown": "# Scheduled Task with Suppressed Output\n\n## Objective\nSet up a recurring scheduled task that runs quietly.\n\n## Task\n1. Create an executable script at `/workspace/job.sh` that appends the current date/time to `/workspace/log.txt`.\n2. Schedule it to run **every 5 minutes** via `cron`. The job must discard both standard output and standard error so it generates no mail.\n\nAdd the schedule without interactively editing the crontab.\n\n## Hints\n- The script needs to be executable to run from cron.\n- A cron schedule has five time fields followed by a command \u2014 research the pattern for \u201cevery 5 minutes\u201d.\n- Redirecting both output streams is the key to suppressing mail.\n\n## Expected Outcome\n- `/workspace/job.sh` is executable and appends a date to the log.\n- The cron table contains an entry that runs every 5 minutes and redirects output to `/dev/null`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/cron-suppress/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/cron-suppress/check.sh"
+    },
+    {
+      "id": "fe3d9ba8-39cb-4a76-9711-3946da850110",
+      "code": "nginx-static-8080",
+      "title": "Nginx Static Site on 8080",
+      "description": "Configure Nginx to serve static content on port 8080.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "nginx",
+        "web-server",
+        "curl",
+        "networking"
+      ],
+      "objectives": [
+        "Create /data/www/index.html containing exactly 'hello, clice'",
+        "Configure Nginx to serve /data/www on port 8080",
+        "Ensure curl http://localhost:8080 returns hello, clice"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/nginx-static-8080:latest",
+      "markdown": "# Web Service on 8080\n\n## Objective\nServe a static page on port `8080` using Nginx.\n\n## Task\n1. Create the document root and content:\n   - Directory: `/data/www`\n   - File: `index.html` containing exactly `hello, clice` (lowercase, with a comma and space)\n\n2. Configure Nginx to serve `/data/www` on port `8080` and start the service. The default configuration should be adapted or supplemented so that a request to `http://localhost:8080/` returns your file.\n\n## Hints\n- On this system Nginx configuration can be added under `/etc/nginx/conf.d/` or `/etc/nginx/sites-available/`.\n- After changing configuration, verify syntax and (re)start Nginx.\n- `curl` can be used to test the local endpoint.\n\n## Expected Outcome\n`curl -s http://localhost:8080/` returns `hello, clice` and `/data/www/index.html` contains the same.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/nginx-static-8080/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/nginx-static-8080/check.sh"
+    },
+    {
+      "id": "f10dbc8b-9e2f-4f6a-8f52-d7845b25aac6",
+      "code": "mysql-grant-select",
+      "title": "MariaDB User Grants",
+      "description": "Create a database user and grant specific privileges.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "SYSTEM_ADMINISTRATION",
+      "tags": [
+        "mariadb",
+        "mysql",
+        "database",
+        "privileges"
+      ],
+      "objectives": [
+        "Start MariaDB service",
+        "Create database appdb",
+        "Create user appuser@localhost identified by SecurePass123!",
+        "Grant SELECT and INSERT on appdb.* to that user"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/mysql-grant-select:latest",
+      "markdown": "# Database User Privileges\n\n## Objective\nCreate a database and a restricted user with specific grants.\n\n## Task\nUsing MariaDB:\n\n1. Ensure the database server is running and create a database named `appdb` if it does not exist.\n2. Create a user `appuser@localhost` identified by `SecurePass123!` if it does not exist.\n3. Grant only `SELECT` and `INSERT` privileges on `appdb.*` to that user.\n\nDo not grant additional privileges.\n\n## Hints\n- The server can be started directly without the system service manager.\n- Grants can be inspected to confirm only the intended privileges were given.\n- The user and database creation should be idempotent.\n\n## Expected Outcome\n- Database `appdb` exists.\n- User `appuser@localhost` exists with password `SecurePass123!`.\n- `SHOW GRANTS` for the user includes `SELECT` and `INSERT` on `appdb` and does not include `ALL PRIVILEGES`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/mysql-grant-select/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/mysql-grant-select/check.sh"
+    },
+    {
+      "id": "f56d44df-708e-4116-8a0d-9c3e3b61a58e",
       "code": "failed-login-audit",
       "title": "Failed Login Investigation",
       "description": "Analyze a web server access log to find which IP address is responsible for the most failed login attempts.",
@@ -81,117 +238,31 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/failed-login-audit/check.sh"
     },
     {
-      "id": "e39a9c41-21ee-4c10-81f2-335202eb3efd",
-      "code": "firewall-port-8080",
-      "title": "Firewall Port 8080",
-      "description": "Open a TCP port permanently in firewalld.",
-      "difficulty": "BEGINNER[#--]",
+      "id": "bec27f7d-a26e-415c-b643-56ec7e8b2fac",
+      "code": "ghost-service",
+      "title": "Ghost Service",
+      "description": "Stand up a small HTTP service inside this container, running as an unprivileged user, that keeps answering health checks even after your interactive session ends.",
+      "difficulty": "ADVANCED[###]",
       "category": "SYSTEM_ADMINISTRATION",
       "tags": [
-        "firewalld",
-        "firewall-cmd",
-        "networking"
-      ],
-      "objectives": [
-        "Add TCP port 8080 to the public zone permanently",
-        "Reload or ensure config is written",
-        "Verify port is listed via offline check or config file"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/firewall-port-8080:latest",
-      "markdown": "# Open Port 8080\n\n## Objective\nAllow TCP traffic on port `8080` in the `public` firewall zone.\n\n## Task\nOpen port `8080/tcp` permanently in the `public` zone. The change should persist and be visible in the permanent configuration.\n\nIf the firewall service is not actively running, the offline configuration is sufficient.\n\n## Hints\n- `firewalld` provides both a running and an offline/permanent mode \u2014 the permanent zone files are stored under `/etc/firewalld/zones/`.\n- You can query whether a port is considered open in the permanent configuration.\n\n## Expected Outcome\nPort `8080/tcp` is listed as open for the `public` zone in the permanent configuration.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/firewall-port-8080/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/firewall-port-8080/check.sh"
-    },
-    {
-      "id": "76ad7c40-0950-4f23-bf46-fd5b43973c86",
-      "code": "user-custom-home",
-      "title": "Custom User Home and Shell",
-      "description": "Create a user with a specific home directory, login shell, and UID.",
-      "difficulty": "INTERMEDIATE[##-]",
-      "category": "SYSTEM_ADMINISTRATION",
-      "tags": [
-        "useradd",
+        "process-management",
         "users-and-permissions",
-        "getent"
+        "networking",
+        "services"
       ],
       "objectives": [
-        "Create user cliceuser with home /opt/cliceuser, shell /bin/bash, UID 1500",
-        "Ensure home directory exists and is owned by cliceuser:cliceuser",
-        "Verify getent passwd shows cliceuser:x:1500:1500::/opt/cliceuser:/bin/bash"
+        "Create a non-root system user named svc-runner",
+        "Get an HTTP service listening on port 9000, running as svc-runner (not root)",
+        "The service must respond to GET /health with a JSON body containing \"status\":\"ok\" and \"service\":\"clice\"",
+        "The service must still be running and answering after you exit your shell (verification happens after your session ends, not during it)"
       ],
-      "image": "ghcr.io/programming-sai/clice-challenges/user-custom-home:latest",
-      "markdown": "# Custom User Setup\n\n## Objective\nCreate a system user with specific attributes.\n\n## Task\nCreate a user named `cliceuser` with:\n- Home directory: `/opt/cliceuser`\n- Login shell: `/bin/bash`\n- UID: `1500`\n- Primary group: `cliceuser` (also GID `1500`)\n\nThe home directory must exist and be owned by this user. The account does not need a password.\n\n## Hints\n- There is a single command that can set home, shell, and UID together \u2014 check its options for creating the home directory automatically.\n- After creation, you can inspect the user\u2019s entry and the home directory\u2019s ownership.\n\n## Expected Outcome\n`getent passwd cliceuser` shows `cliceuser:x:1500:1500::/opt/cliceuser:/bin/bash` and `/opt/cliceuser` exists with correct ownership.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/user-custom-home/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/user-custom-home/check.sh"
+      "image": "ghcr.io/programming-sai/clice-challenges/ghost-service:latest",
+      "markdown": "# Ghost Service\n\n## Objective\n\nGet a small HTTP service running inside this container that:\n\n1. Runs as a **non-root** system user named `svc-runner` (not root, not\n   your default user).\n2. Listens on **TCP port 9000**.\n3. Responds to `GET /health` with a JSON body containing\n   `\"status\": \"ok\"` and `\"service\": \"clice\"` (formatting/whitespace\n   doesn't matter, the fields just need to be present with those values).\n4. **Keeps running after your shell session ends.** Verification happens\n   once you submit, not while you're still connected \u2014 if your service\n   dies the moment your interactive shell exits, it won't be running by\n   the time it's checked.\n\nThere is no file to write anywhere for this one. Everything is checked\nby inspecting live process, user, and network state.\n\n## Tools available in this image\n\n`python3`, `curl`, `netcat-openbsd`, `socat`, `sudo`, `iproute2`,\n`procps` \u2014 pick whatever combination gets you there. There is more than\none valid way to build the service itself and more than one valid way\nto keep it alive after your shell exits.\n\n## Notes\n\n- Think about what actually happens to a background process when the\n  shell that launched it terminates.\n- Running the service as root is the easy way and will fail the check \u2014\n  the whole point is doing it as an unprivileged user.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/ghost-service/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/ghost-service/check.sh"
     },
     {
-      "id": "99b9216f-1d81-4913-b6cd-d702822e5652",
-      "code": "grep-hyphen",
-      "title": "Grep Hyphen Pattern",
-      "description": "Search for a string beginning with a hyphen without triggering option parsing.",
-      "difficulty": "BEGINNER[#--]",
-      "category": "TEXT_PROCESSING",
-      "tags": [
-        "grep",
-        "text-processing",
-        "cli-syntax"
-      ],
-      "objectives": [
-        "Find the line containing -k in /workspace/data/options.txt",
-        "Write that line and only that line to /workspace/output.txt"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/grep-hyphen:latest",
-      "markdown": "# Hyphen Pattern Search\n\n## Objective\nExtract a single line from a file that contains a hyphen-prefixed pattern.\n\n## Task\nThe file `/workspace/data/options.txt` lists one option per line. One of those lines contains the string `-k` (hyphen followed by `k`).\n\nFind that line and write **only that line** to `/workspace/output.txt`.\n\nBe careful \u2014 some search tools interpret leading hyphens as options rather than data.\n\n## Hints\n- A naive search for `-k` may be treated as an option rather than a pattern.\n- Check your tool's manual for how to mark the end of options or specify a pattern explicitly.\n- The output file must contain exactly one line.\n\n## Expected Outcome\n`/workspace/output.txt` contains exactly the line from the source file that includes `-k`.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/grep-hyphen/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/grep-hyphen/check.sh"
-    },
-    {
-      "id": "8c5ecd16-1725-4f0c-9ca8-39bafe768ce2",
-      "code": "perm-numeric-764",
-      "title": "Numeric Permission 764",
-      "description": "Apply exact numeric permissions to a file using chmod.",
-      "difficulty": "BEGINNER[#--]",
-      "category": "FILE_MANIPULATION",
-      "tags": [
-        "chmod",
-        "permissions",
-        "stat",
-        "file-manipulation"
-      ],
-      "objectives": [
-        "Create file /workspace/output.txt with any content",
-        "Set permissions so owner has rwx (7), group has rw- (6), others have r-- (4) \u2014 mode 764",
-        "Verify with stat -c '%a' that the mode is exactly 764"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/perm-numeric-764:latest",
-      "markdown": "# Numeric Permission 764\n\n## Objective\nA file at `/workspace/output.txt` must exist and have permissions `764`.\n\n## Task\nCreate the file `/workspace/output.txt` (any content is fine) and configure its permissions so that:\n- Owner can read, write, and execute (`rwx`)\n- Group can read and write (`rw-`)\n- Others can read only (`r--`)\n\nIn octal, this combination is `764`. The checker will verify the numeric mode.\n\n## Hints\n- `stat` can show the current numeric mode of a file.\n- Permissions can be set using either symbolic (`u=rwx,g=rw,o=r`) or numeric (`764`) forms.\n\n## Expected Outcome\n`/workspace/output.txt` exists and its mode is `764`. Verify your work with `stat`.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/perm-numeric-764/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/perm-numeric-764/check.sh"
-    },
-    {
-      "id": "2ae31d70-7652-4bfc-8f0f-d584fed07acc",
-      "code": "cron-suppress",
-      "title": "Cron Job with Output Suppression",
-      "description": "Create a recurring cron job that discards all output to prevent mail generation.",
-      "difficulty": "INTERMEDIATE[##-]",
-      "category": "SYSTEM_ADMINISTRATION",
-      "tags": [
-        "cron",
-        "crontab",
-        "scheduling"
-      ],
-      "objectives": [
-        "Create executable script /workspace/job.sh that appends the current date to /workspace/log.txt",
-        "Add a cron entry that runs every 5 minutes as: */5 * * * * /workspace/job.sh >/dev/null 2>&1",
-        "Verify the entry is visible via crontab -l or spool file"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/cron-suppress:latest",
-      "markdown": "# Scheduled Task with Suppressed Output\n\n## Objective\nSet up a recurring scheduled task that runs quietly.\n\n## Task\n1. Create an executable script at `/workspace/job.sh` that appends the current date/time to `/workspace/log.txt`.\n2. Schedule it to run **every 5 minutes** via `cron`. The job must discard both standard output and standard error so it generates no mail.\n\nAdd the schedule without interactively editing the crontab.\n\n## Hints\n- The script needs to be executable to run from cron.\n- A cron schedule has five time fields followed by a command \u2014 research the pattern for \u201cevery 5 minutes\u201d.\n- Redirecting both output streams is the key to suppressing mail.\n\n## Expected Outcome\n- `/workspace/job.sh` is executable and appends a date to the log.\n- The cron table contains an entry that runs every 5 minutes and redirects output to `/dev/null`.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/cron-suppress/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/cron-suppress/check.sh"
-    },
-    {
-      "id": "24c6e558-d02f-42eb-8311-9037c4f2acae",
+      "id": "deb3c414-4388-4a62-86fa-a12e87162c27",
       "code": "awk-sales-aggregate",
       "title": "Sales Region Aggregation",
       "description": "Use awk to find the region with the highest total sales from a delimited dataset.",
@@ -214,119 +285,26 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/awk-sales-aggregate/check.sh"
     },
     {
-      "id": "95947246-c90f-4ace-901f-dc8e8df99a95",
-      "code": "sed-heredoc-norm",
-      "title": "Config Sanitization with sed",
-      "description": "Edit a config file in place \u2014 remove comments and blank lines, and toggle a setting.",
-      "difficulty": "INTERMEDIATE[##-]",
-      "category": "TEXT_PROCESSING",
-      "tags": [
-        "sed",
-        "text-processing",
-        "config"
-      ],
-      "objectives": [
-        "Remove all comment lines starting with # from /workspace/data/app.conf",
-        "Remove all empty lines from /workspace/data/app.conf",
-        "Change DEBUG_MODE=true to DEBUG_MODE=false in the same file"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/sed-heredoc-norm:latest",
-      "markdown": "# Config Sanitization\n\n## Objective\nClean up the config file at `/workspace/data/app.conf`.\n\n## Task\nThe file contains comment lines, blank lines, and a debug flag that is currently enabled.\n\nYour goal is to leave the file in a clean state:\n- No lines should start with `#`\n- No empty lines should remain\n- The setting `DEBUG_MODE` must be `false`, not `true`\n\nWork directly on `/workspace/data/app.conf`. Inspect the file before and after to confirm your changes.\n\n## Hints\n- You can edit a file in place without opening an editor.\n- Consider how to match lines that start with a specific character or are completely empty.\n- A substitution can replace one string value with another.\n\n## Expected Outcome\nThe file contains no comment or empty lines and includes `DEBUG_MODE=false`.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/sed-heredoc-norm/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/sed-heredoc-norm/check.sh"
-    },
-    {
-      "id": "31d72c8e-7d5e-425f-89d6-f3ab885395fc",
-      "code": "nginx-static-8080",
-      "title": "Nginx Static Site on 8080",
-      "description": "Configure Nginx to serve static content on port 8080.",
-      "difficulty": "INTERMEDIATE[##-]",
-      "category": "SYSTEM_ADMINISTRATION",
-      "tags": [
-        "nginx",
-        "web-server",
-        "curl",
-        "networking"
-      ],
-      "objectives": [
-        "Create /data/www/index.html containing exactly 'hello, clice'",
-        "Configure Nginx to serve /data/www on port 8080",
-        "Ensure curl http://localhost:8080 returns hello, clice"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/nginx-static-8080:latest",
-      "markdown": "# Web Service on 8080\n\n## Objective\nServe a static page on port `8080` using Nginx.\n\n## Task\n1. Create the document root and content:\n   - Directory: `/data/www`\n   - File: `index.html` containing exactly `hello, clice` (lowercase, with a comma and space)\n\n2. Configure Nginx to serve `/data/www` on port `8080` and start the service. The default configuration should be adapted or supplemented so that a request to `http://localhost:8080/` returns your file.\n\n## Hints\n- On this system Nginx configuration can be added under `/etc/nginx/conf.d/` or `/etc/nginx/sites-available/`.\n- After changing configuration, verify syntax and (re)start Nginx.\n- `curl` can be used to test the local endpoint.\n\n## Expected Outcome\n`curl -s http://localhost:8080/` returns `hello, clice` and `/data/www/index.html` contains the same.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/nginx-static-8080/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/nginx-static-8080/check.sh"
-    },
-    {
-      "id": "582c488f-9f28-41be-afd7-64281430447f",
-      "code": "dns-forward-zone",
-      "title": "BIND Forward Zone",
-      "description": "Configure BIND to resolve a custom domain to an IP address.",
-      "difficulty": "ADVANCED[###]",
-      "category": "SYSTEM_ADMINISTRATION",
-      "tags": [
-        "bind",
-        "dns",
-        "named",
-        "networking"
-      ],
-      "objectives": [
-        "Create forward zone for app.local resolving www.app.local to 192.168.1.100",
-        "Ensure named-checkconf and named-checkzone pass",
-        "Ensure dig @127.0.0.1 www.app.local returns 192.168.1.100"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/dns-forward-zone:latest",
-      "markdown": "# DNS Forward Zone\n\n## Objective\nConfigure a local BIND resolver to answer for `app.local`.\n\n## Task\nConfigure BIND to resolve `www.app.local` to `192.168.1.100`.\n\nYour zone should include:\n- A SOA record\n- An NS record for `ns1.app.local`\n- An A record for `ns1` (`192.168.1.10`)\n- An A record for `www` (`192.168.1.100`)\n\nAdd the zone to the BIND configuration, verify the configuration and zone file are valid, start the name server, and ensure it answers queries.\n\n## Hints\n- Zone files and BIND configuration live under `/etc/bind` on Ubuntu and `/etc` / `/var/named` on openEuler \u2014 check where your system expects them.\n- Two tools can validate your work before you start the server: one for the main config and one for the zone file.\n- Test with a direct query to `127.0.0.1` to avoid relying on external resolvers.\n\n## Expected Outcome\n`dig @127.0.0.1 www.app.local +short` returns `192.168.1.100` and both configuration checks pass.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/dns-forward-zone/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/dns-forward-zone/check.sh"
-    },
-    {
-      "id": "3a23dd73-d29a-4a5e-ad73-ea1453ba3f5f",
-      "code": "git-merge-conflict",
-      "title": "Resolve the Merge Conflict",
-      "description": "Merge a feature branch into main, resolve the conflict by hand, and keep everyone's work.",
-      "difficulty": "INTERMEDIATE[##-]",
-      "category": "VERSION_CONTROL",
-      "tags": [
-        "git",
-        "merge",
-        "branches",
-        "conflict-resolution"
-      ],
-      "objectives": [
-        "In /workspace/cafe, merge the student-prices branch into main",
-        "Resolve the conflict so the Coffee line shows both the new price (15) and the student price (12)",
-        "Keep every other change from both branches, leave no conflict markers, and finish the merge commit"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/git-merge-conflict:latest",
-      "markdown": "# Resolve the Merge Conflict\n\n## Objective\n\nTwo people edited the same menu. Combine their work without losing either.\n\n## Scenario\n\n`/workspace/cafe` is a repo for a campus cafe's `menu.txt`. Two branches have diverged:\n\n- `main` raised the coffee price and added a new item.\n- `student-prices` added discounted prices.\n\nBoth changed the **same Coffee line**, so git can't decide for you.\n\n## Task\n\n1. Go to `/workspace/cafe` (you start there) and make sure you're on `main`.\n2. Merge `student-prices` into `main`.\n3. Git will stop with a conflict. Open `menu.txt` and resolve it.\n   - The Coffee line must show **both** the new regular price (15) and the student price (12).\n   - Every other change from both branches must be kept.\n4. Finish the merge with a commit.\n\n## Hints\n\n- `git status` tells you which files are in conflict.\n- Conflicted sections look like `<<<<<<<`, `=======`, `>>>>>>>`. Those markers must not remain in the final file.\n- You can edit files with `sed`, `echo`, or `cat > file`. (There's no interactive editor in this container.)\n- After editing, tell git the conflict is resolved with `git add`, then run `git commit`. The default merge message is used automatically.\n- Nothing here can hurt you. If it goes wrong, `git merge --abort` puts you back at the start.\n\n## Expected Outcome\n\n- `main` has a merge commit joining both branches\n- `menu.txt` has 6 lines, no conflict markers, and a Coffee line mentioning both prices\n- `git status` is clean\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/git-merge-conflict/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/git-merge-conflict/check.sh"
-    },
-    {
-      "id": "b956dfc2-d257-4d1d-97c0-58924299669e",
-      "code": "hello-clice",
-      "title": "Hello CLICE Challenge",
-      "description": "Create a file called output.txt containing exactly 'Hello clice'",
+      "id": "601dc376-0f68-4da6-a3c4-4ab016c22f28",
+      "code": "timeout-test",
+      "title": "(Stress Test) Checker Timeout",
+      "description": "Internal stress-test challenge - the checker deliberately hangs and floods stdout to verify checker_timeout is actually enforced.",
       "difficulty": "BEGINNER[#--]",
-      "category": "FILE_MANIPULATION",
+      "category": "STRESS_TEST",
       "tags": [
-        "bash",
-        "echo",
-        "file-creation"
+        "internal",
+        "stress-test"
       ],
       "objectives": [
-        "Create a file named `output.txt` in the `/workspace` directory",
-        "The file must contain the exact string 'Hello clice'"
+        "Type any command and submit - the checker itself is what's being tested here"
       ],
-      "image": "ghcr.io/programming-sai/clice-challenges/hello-clice:latest",
-      "markdown": "# Hello CLICE Challenge\n\n## Objective\n\nCreate a file called `output.txt` in your workspace containing exactly the string `Hello clice`.\n\n## Task\n\nThis is the simplest possible challenge to verify your CLI environment is working.\n\n1. Navigate to the `/workspace` directory if you're not already there.\n2. Use the `echo` command to write the text `Hello clice` to a file named `output.txt`.\n3. Verify the file exists and contains the correct text.\n\n## Hints\n\n- Use `echo` to write to a file: `echo \"text\" > filename`\n- Check your work with `cat output.txt`\n- You should see `Hello clice` printed to the terminal\n\n## Expected Outcome\n\nA file `/workspace/output.txt` with the exact contents:\n\n```bash\nHello clice\n```\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/hello-clice/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/hello-clice/check.sh"
+      "image": "ghcr.io/programming-sai/clice-challenges/timeout-test:latest",
+      "markdown": "# (Stress Test) Checker Timeout\n\nNot a real challenge. Its checker deliberately hangs and floods stdout,\nto confirm `checker_timeout` actually kills a runaway checker under real\nadversarial conditions rather than just the clean cases already tested.\n\nDo anything, submit, and confirm:\n\n- The verdict comes back within `checker_timeout` seconds (default 20), not\n  100,000 \\* 0.05s later.\n- The result is a clean FAIL/ENVIRONMENT ERROR, not a hang or a crash.\n- `docker ps -a` shows no leftover exec processes or zombie state afterward.\n\nRemove this challenge from the registry once you're done with it - it's\na test fixture, not real content.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/timeout-test/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/timeout-test/check.sh"
     },
     {
-      "id": "0778ae06-c967-4446-b966-2ffbe6b8cec8",
+      "id": "956d6b4d-baba-49bd-bee4-e880f8408b6b",
       "code": "git-selective-commit",
       "title": "Commit What Matters",
       "description": "Commit your new source file, and keep the noisy log file out of the repo with .gitignore.",
@@ -349,47 +327,69 @@
       "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/git-selective-commit/check.sh"
     },
     {
-      "id": "0a33c401-1fb1-438b-9921-65343831ffd3",
-      "code": "timeout-test",
-      "title": "(Stress Test) Checker Timeout",
-      "description": "Internal stress-test challenge - the checker deliberately hangs and floods stdout to verify checker_timeout is actually enforced.",
+      "id": "2282b773-a138-4087-a840-166c122b01c9",
+      "code": "firewall-port-8080",
+      "title": "Firewall Port 8080",
+      "description": "Open a TCP port permanently in firewalld.",
       "difficulty": "BEGINNER[#--]",
-      "category": "STRESS_TEST",
-      "tags": [
-        "internal",
-        "stress-test"
-      ],
-      "objectives": [
-        "Type any command and submit - the checker itself is what's being tested here"
-      ],
-      "image": "ghcr.io/programming-sai/clice-challenges/timeout-test:latest",
-      "markdown": "# (Stress Test) Checker Timeout\n\nNot a real challenge. Its checker deliberately hangs and floods stdout,\nto confirm `checker_timeout` actually kills a runaway checker under real\nadversarial conditions rather than just the clean cases already tested.\n\nDo anything, submit, and confirm:\n\n- The verdict comes back within `checker_timeout` seconds (default 20), not\n  100,000 \\* 0.05s later.\n- The result is a clean FAIL/ENVIRONMENT ERROR, not a hang or a crash.\n- `docker ps -a` shows no leftover exec processes or zombie state afterward.\n\nRemove this challenge from the registry once you're done with it - it's\na test fixture, not real content.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/timeout-test/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/timeout-test/check.sh"
-    },
-    {
-      "id": "7faebba2-fb5c-4a03-a1a8-c8256906d125",
-      "code": "mysql-grant-select",
-      "title": "MariaDB User Grants",
-      "description": "Create a database user and grant specific privileges.",
-      "difficulty": "INTERMEDIATE[##-]",
       "category": "SYSTEM_ADMINISTRATION",
       "tags": [
-        "mariadb",
-        "mysql",
-        "database",
-        "privileges"
+        "firewalld",
+        "firewall-cmd",
+        "networking"
       ],
       "objectives": [
-        "Start MariaDB service",
-        "Create database appdb",
-        "Create user appuser@localhost identified by SecurePass123!",
-        "Grant SELECT and INSERT on appdb.* to that user"
+        "Add TCP port 8080 to the public zone permanently",
+        "Reload or ensure config is written",
+        "Verify port is listed via offline check or config file"
       ],
-      "image": "ghcr.io/programming-sai/clice-challenges/mysql-grant-select:latest",
-      "markdown": "# Database User Privileges\n\n## Objective\nCreate a database and a restricted user with specific grants.\n\n## Task\nUsing MariaDB:\n\n1. Ensure the database server is running and create a database named `appdb` if it does not exist.\n2. Create a user `appuser@localhost` identified by `SecurePass123!` if it does not exist.\n3. Grant only `SELECT` and `INSERT` privileges on `appdb.*` to that user.\n\nDo not grant additional privileges.\n\n## Hints\n- The server can be started directly without the system service manager.\n- Grants can be inspected to confirm only the intended privileges were given.\n- The user and database creation should be idempotent.\n\n## Expected Outcome\n- Database `appdb` exists.\n- User `appuser@localhost` exists with password `SecurePass123!`.\n- `SHOW GRANTS` for the user includes `SELECT` and `INSERT` on `appdb` and does not include `ALL PRIVILEGES`.\n",
-      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/mysql-grant-select/",
-      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/mysql-grant-select/check.sh"
+      "image": "ghcr.io/programming-sai/clice-challenges/firewall-port-8080:latest",
+      "markdown": "# Open Port 8080\n\n## Objective\nAllow TCP traffic on port `8080` in the `public` firewall zone.\n\n## Task\nOpen port `8080/tcp` permanently in the `public` zone. The change should persist and be visible in the permanent configuration.\n\nIf the firewall service is not actively running, the offline configuration is sufficient.\n\n## Hints\n- `firewalld` provides both a running and an offline/permanent mode \u2014 the permanent zone files are stored under `/etc/firewalld/zones/`.\n- You can query whether a port is considered open in the permanent configuration.\n\n## Expected Outcome\nPort `8080/tcp` is listed as open for the `public` zone in the permanent configuration.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/firewall-port-8080/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/firewall-port-8080/check.sh"
+    },
+    {
+      "id": "d501edf6-b6cc-4cbf-95d0-179168cd3803",
+      "code": "sed-heredoc-norm",
+      "title": "Config Sanitization with sed",
+      "description": "Edit a config file in place \u2014 remove comments and blank lines, and toggle a setting.",
+      "difficulty": "INTERMEDIATE[##-]",
+      "category": "TEXT_PROCESSING",
+      "tags": [
+        "sed",
+        "text-processing",
+        "config"
+      ],
+      "objectives": [
+        "Remove all comment lines starting with # from /workspace/data/app.conf",
+        "Remove all empty lines from /workspace/data/app.conf",
+        "Change DEBUG_MODE=true to DEBUG_MODE=false in the same file"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/sed-heredoc-norm:latest",
+      "markdown": "# Config Sanitization\n\n## Objective\nClean up the config file at `/workspace/data/app.conf`.\n\n## Task\nThe file contains comment lines, blank lines, and a debug flag that is currently enabled.\n\nYour goal is to leave the file in a clean state:\n- No lines should start with `#`\n- No empty lines should remain\n- The setting `DEBUG_MODE` must be `false`, not `true`\n\nWork directly on `/workspace/data/app.conf`. Inspect the file before and after to confirm your changes.\n\n## Hints\n- You can edit a file in place without opening an editor.\n- Consider how to match lines that start with a specific character or are completely empty.\n- A substitution can replace one string value with another.\n\n## Expected Outcome\nThe file contains no comment or empty lines and includes `DEBUG_MODE=false`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/sed-heredoc-norm/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/sed-heredoc-norm/check.sh"
+    },
+    {
+      "id": "e9cf5f1a-50df-40f2-833e-da154a9f7609",
+      "code": "grep-hyphen",
+      "title": "Grep Hyphen Pattern",
+      "description": "Search for a string beginning with a hyphen without triggering option parsing.",
+      "difficulty": "BEGINNER[#--]",
+      "category": "TEXT_PROCESSING",
+      "tags": [
+        "grep",
+        "text-processing",
+        "cli-syntax"
+      ],
+      "objectives": [
+        "Find the line containing -k in /workspace/data/options.txt",
+        "Write that line and only that line to /workspace/output.txt"
+      ],
+      "image": "ghcr.io/programming-sai/clice-challenges/grep-hyphen:latest",
+      "markdown": "# Hyphen Pattern Search\n\n## Objective\nExtract a single line from a file that contains a hyphen-prefixed pattern.\n\n## Task\nThe file `/workspace/data/options.txt` lists one option per line. One of those lines contains the string `-k` (hyphen followed by `k`).\n\nFind that line and write **only that line** to `/workspace/output.txt`.\n\nBe careful \u2014 some search tools interpret leading hyphens as options rather than data.\n\n## Hints\n- A naive search for `-k` may be treated as an option rather than a pattern.\n- Check your tool's manual for how to mark the end of options or specify a pattern explicitly.\n- The output file must contain exactly one line.\n\n## Expected Outcome\n`/workspace/output.txt` contains exactly the line from the source file that includes `-k`.\n",
+      "challenge_url": "https://github.com/programming-sai/clice-challenges/tree/main/grep-hyphen/",
+      "check_url": "https://raw.githubusercontent.com/programming-sai/clice-challenges/main/grep-hyphen/check.sh"
     }
   ]
 }
