@@ -5,13 +5,20 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      rebuild_all:
+        description: "Rebuild EVERY challenge, not just the ones that changed since their last published build"
+        type: boolean
+        required: false
+        default: false
       fresh_build:
-        description: "Ignore build cache for every challenge on BOTH architectures"
+        description: "Ignore build cache for every challenge that gets built, on BOTH architectures"
         type: boolean
         required: false
         default: false
 
-# Serialize publication; a superseded run must not publish an older registry.
+# Serialize publication; a superseded run must not publish an older registry. Cancelling is safe even though
+# runs build only what changed: "changed" is measured against the last PUBLISHED build (build-state.json on the
+# registry branch), so a cancelled run's changes are simply picked up again by the next run.
 concurrency:
   group: clice-challenge-publication
   cancel-in-progress: true
@@ -24,8 +31,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       challenges: ${{ steps.find.outputs.challenges }}
+      build: ${{ steps.plan.outputs.build }}
+      has_builds: ${{ steps.plan.outputs.has_builds }}
+      publish: ${{ steps.plan.outputs.publish }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -86,10 +98,35 @@ jobs:
           for checker in */check.sh; do
             bash -n "$checker"
           done
+      # Only challenges that changed since their last PUBLISHED build are rebuilt, unless a flag says "all":
+      #   - manual run with "rebuild_all" ticked,
+      #   - the text [rebuild-all] in the head commit message of a push, or
+      #   - a repository variable CLICE_REBUILD_ALL set to true (Settings > Variables) to keep it on.
+      - name: Plan which challenges to build
+        id: plan
+        shell: bash
+        env:
+          HEAD_MSG: ${{ github.event.head_commit.message }}
+          DISPATCH_ALL: ${{ inputs.rebuild_all }}
+          REPO_VAR_ALL: ${{ vars.CLICE_REBUILD_ALL }}
+        run: |
+          set -euo pipefail
+          force=""
+          [ "$DISPATCH_ALL" = "true" ] && force="manual run with rebuild_all ticked"
+          [ "$REPO_VAR_ALL" = "true" ] && force="repository variable CLICE_REBUILD_ALL=true"
+          printf '%s' "$HEAD_MSG" | grep -qiF '[rebuild-all]' && force="[rebuild-all] in the commit message"
+          git fetch --no-tags origin registry:refs/remotes/origin/registry || echo "No registry branch yet - everything will be built."
+          if [ -n "$force" ]; then
+            echo "Rebuilding everything: $force"
+            python .github/scripts/build_state.py plan --force-all
+          else
+            python .github/scripts/build_state.py plan
+          fi
 
   build:
     name: Build and smoke-test ${{ matrix.challenge }} (${{ matrix.target.arch }})
     needs: discover
+    if: ${{ needs.discover.outputs.has_builds == 'true' }}
     runs-on: ${{ matrix.target.runner }}
     timeout-minutes: 90
     permissions:
@@ -98,7 +135,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        challenge: ${{ fromJson(needs.discover.outputs.challenges) }}
+        challenge: ${{ fromJson(needs.discover.outputs.has_builds == 'true' && needs.discover.outputs.build || '["_none"]') }}
         target:
           - arch: amd64
             runner: ubuntu-24.04
@@ -211,7 +248,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        challenge: ${{ fromJson(needs.discover.outputs.challenges) }}
+        challenge: ${{ fromJson(needs.discover.outputs.has_builds == 'true' && needs.discover.outputs.build || '["_none"]') }}
     env:
       IMAGE: ghcr.io/programming-sai/clice-challenges/${{ matrix.challenge }}
       CHALLENGE: ${{ matrix.challenge }}
@@ -267,7 +304,7 @@ jobs:
       contents: read
       packages: write
     env:
-      CHALLENGES: ${{ needs.discover.outputs.challenges }}
+      CHALLENGES: ${{ needs.discover.outputs.build }}
       STAGING_TAG: candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       SOURCE_SHA: ${{ github.sha }}
     steps:
@@ -277,7 +314,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Update latest and source-commit tags only after every candidate passes
+      - name: Update latest and source-commit tags only after every built candidate passes
         shell: bash
         run: |
           set -euo pipefail
@@ -304,6 +341,7 @@ jobs:
   publish-registry:
     name: Publish registry after multi-platform promotion
     needs: [discover, promote]
+    if: ${{ !cancelled() && needs.discover.result == 'success' && needs.discover.outputs.publish == 'true' && (needs.discover.outputs.has_builds == 'false' || needs.promote.result == 'success') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -330,6 +368,12 @@ jobs:
           PY
           mkdir -p deploy
           cp registry.json registry.hash deploy/
+      - name: Record what was published (so the next run only rebuilds what changed after this)
+        env:
+          BUILT: ${{ needs.discover.outputs.build }}
+        run: |
+          git fetch --no-tags origin registry:refs/remotes/origin/registry || true
+          python .github/scripts/build_state.py record --built "$BUILT" --sha "$GITHUB_SHA" --out deploy/build-state.json
       - name: Deploy registry
         uses: peaceiris/actions-gh-pages@v4
         with:
