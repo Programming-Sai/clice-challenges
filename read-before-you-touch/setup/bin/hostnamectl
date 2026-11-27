@@ -1,0 +1,40 @@
+#!/bin/bash
+# hostnamectl stand-in (training container). Static hostname lives in /etc/hostname.
+STATIC_F=/etc/hostname; TRANS_F=/run/ksim/transient-hostname
+static=$(cat $STATIC_F 2>/dev/null | head -1); trans=""; [ -s $TRANS_F ] && trans=$(cat $TRANS_F)
+mode=""; flag=""; name=""
+for a in "$@"; do
+  case "$a" in
+    --static) flag=static;; --transient) flag=transient;; --pretty) flag=pretty;;
+    -*) ;;
+    *) if [ -z "$mode" ]; then mode=$a; elif [ -z "$name" ]; then name=$a; fi;;
+  esac
+done
+case "$mode" in
+  ""|status)
+    if [ -n "$flag" ] && [ -z "$mode" ]; then
+      case $flag in static) echo "$static";; transient) echo "${trans:-$static}";; pretty) echo;; esac; exit 0; fi
+    echo " Static hostname: $static"
+    [ -n "$trans" ] && [ "$trans" != "$static" ] && echo "Transient hostname: $trans"
+    echo "       Icon name: computer-vm"
+    echo "         Chassis: vm"
+    echo "      Machine ID: 4f1c9a0b7d2e4c8e9a5b6d3f1e2a7c90"
+    echo "         Boot ID: $(cat /proc/sys/kernel/random/boot_id | tr -d -)"
+    echo "  Virtualization: kvm"
+    echo "Operating System: Ubuntu 22.04.5 LTS"
+    echo "          Kernel: Linux $(uname -r)"
+    echo "    Architecture: $(uname -m | sed 's/x86_64/x86-64/;s/aarch64/arm64/')";;
+  hostname) echo "${trans:-$static}";;
+  set-hostname)
+    [ "$(id -u)" = 0 ] || { echo "Failed to set hostname: Interactive authentication required." >&2; exit 1; }
+    [ -n "$name" ] || { echo "Too few arguments." >&2; exit 1; }
+    echo "$name" | grep -Eq '^[A-Za-z0-9]([A-Za-z0-9.-]{0,251})$' || { echo "Failed to set hostname: Invalid hostname '$name'" >&2; exit 1; }
+    mkdir -p /run/ksim
+    case "$flag" in
+      static) printf '%s\n' "$name" > $STATIC_F;;
+      transient) printf '%s\n' "$name" > $TRANS_F;;
+      pretty) :;;
+      *) printf '%s\n' "$name" > $STATIC_F; rm -f $TRANS_F;;
+    esac;;
+  *) echo "Unknown command verb $mode." >&2; exit 1;;
+esac

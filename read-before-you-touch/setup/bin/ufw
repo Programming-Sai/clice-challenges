@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""ufw stand-in for the clice training container (containers cannot load kernel firewall rules).
+Rules and on/off state are kept in /etc/ufw/sim-state.json; output mimics real ufw."""
+import json, os, sys
+
+STATE = "/etc/ufw/sim-state.json"
+ALIASES = {"ssh": "22/tcp", "http": "80/tcp", "https": "443/tcp", "openssh": "OpenSSH"}
+
+def load():
+    with open(STATE) as fh: return json.load(fh)
+def save(s):
+    with open(STATE, "w") as fh: json.dump(s, fh, indent=1)
+def die(m, c=1): print(m); sys.exit(c)
+
+def spec(tokens):
+    """returns (to, frm) strings from e.g. ['8080/tcp'] or ['from','1.2.3.4','to','any','port','3306']"""
+    if not tokens: die("ERROR: Need 'to' or 'from' clause")
+    if tokens[0] == "in" or tokens[0] == "out": tokens = tokens[1:]
+    if "from" in tokens or "to" in tokens:
+        frm, to, port, proto = "Anywhere", "Anywhere", None, None
+        i = 0
+        while i < len(tokens):
+            t = tokens[i]
+            if t == "from": frm = tokens[i+1]; i += 2
+            elif t == "to": to = tokens[i+1]; i += 2
+            elif t == "port": port = tokens[i+1]; i += 2
+            elif t == "proto": proto = tokens[i+1]; i += 2
+            else: i += 1
+        if frm == "any": frm = "Anywhere"
+        if to == "any": to = "Anywhere"
+        if port: to = port + (f"/{proto}" if proto else "")
+        return to, frm
+    t = ALIASES.get(tokens[0].lower(), tokens[0])
+    return t, "Anywhere"
+
+def rows(s):
+    out = []
+    for r in s["rules"]:
+        out.append((r["to"], r["action"], r["from"], False))
+    for r in s["rules"]:
+        if r["from"] == "Anywhere" and r["to"][0].isdigit() or r["to"] == "OpenSSH":
+            out.append((r["to"] + " (v6)", r["action"], "Anywhere (v6)", True))
+    return out
+
+def show_status(s, verbose, numbered):
+    if not s["enabled"]: print("Status: inactive"); return
+    print("Status: active")
+    if verbose:
+        print("Logging: on (low)")
+        print(f"Default: {s['default_in']} (incoming), allow (outgoing), disabled (routed)")
+        print("New profiles: skip")
+    print()
+    pre = "     " if numbered else ""
+    print(f"{pre}{'To':<27}{'Action':<12}From"); print(f"{pre}{'--':<27}{'------':<12}----")
+    for n, (to, act, frm, v6) in enumerate(rows(s), 1):
+        lab = f"[{n:>2}] " if numbered else ""
+        act_s = act + (" IN" if (verbose or numbered) else "")
+        print(f"{lab}{to:<27}{act_s:<12}{frm}")
+
+def main():
+    if os.geteuid() != 0: die("ERROR: You need to be root to run this script")
+    a = [x for x in sys.argv[1:] if x not in ("--force",)]
+    force = "--force" in sys.argv
+    if not a: die("ERROR: not enough args")
+    s = load(); cmd = a[0]
+    if cmd == "status":
+        show_status(s, "verbose" in a, "numbered" in a)
+    elif cmd in ("enable", "--enable"):
+        if not force:
+            sys.stdout.write("Command may disrupt existing ssh connections. Proceed with operation (y|n)? "); sys.stdout.flush()
+            if sys.stdin.readline().strip().lower() not in ("y", "yes"): die("Aborted", 0)
+        s["enabled"] = True; save(s); print("Firewall is active and enabled on system startup")
+    elif cmd == "disable":
+        s["enabled"] = False; save(s); print("Firewall stopped and disabled on system startup")
+    elif cmd in ("reload", "--reload"):
+        print("Firewall reloaded" if s["enabled"] else "Firewall not enabled (skipping reload)")
+    elif cmd == "reset":
+        s["rules"] = []; s["enabled"] = False; save(s); print("Resetting all rules to installed defaults.")
+    elif cmd == "default":
+        if len(a) < 3 or a[1] not in ("allow", "deny", "reject"): die("ERROR: Invalid syntax")
+        if a[2] == "incoming":
+            s["default_in"] = a[1]; save(s)
+            print(f"Default incoming policy changed to '{a[1]}'\n(be sure to update your rules accordingly)")
+        else: print(f"Default {a[2]} policy changed to '{a[1]}'")
+    elif cmd in ("allow", "deny", "reject", "limit"):
+        to, frm = spec(a[1:]); act = cmd.upper()
+        if to != "OpenSSH" and "/" not in to and to[0].isdigit(): pass
+        if any(r["to"] == to and r["from"] == frm and r["action"] == act for r in s["rules"]):
+            print("Skipping adding existing rule")
+        else:
+            s["rules"].append({"to": to, "action": act, "from": frm}); save(s)
+            print("Rule added")
+            if frm == "Anywhere" and (to[0].isdigit() or to == "OpenSSH"): print("Rule added (v6)")
+    elif cmd == "delete":
+        if a[1].isdigit():
+            rs = rows(s); n = int(a[1])
+            if not 1 <= n <= len(rs): die("ERROR: Could not find rule '%s'" % a[1])
+            to, act, frm, v6 = rs[n-1]
+            if v6: die("Rule deleted (v6)", 0)
+            s["rules"] = [r for r in s["rules"] if not (r["to"] == to and r["action"] == act and r["from"] == frm)]
+            save(s); print("Rule deleted")
+        else:
+            act = a[1].upper(); to, frm = spec(a[2:])
+            before = len(s["rules"])
+            s["rules"] = [r for r in s["rules"] if not (r["to"] == to and r["from"] == frm and r["action"] == act)]
+            if len(s["rules"]) == before: print("Could not delete non-existent rule")
+            else:
+                save(s); print("Rule deleted")
+                if frm == "Anywhere" and (to[0].isdigit() or to == "OpenSSH"): print("Rule deleted (v6)")
+    elif cmd in ("version", "--version"): print("ufw 0.36.1\nCopyright 2008-2021 Canonical Ltd.")
+    else: die(f"ERROR: Invalid syntax\n\nUsage: ufw COMMAND\n(simulated ufw: status, allow, deny, delete, enable, disable, default, reset, reload)", 1)
+
+main()

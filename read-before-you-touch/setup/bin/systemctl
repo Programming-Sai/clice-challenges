@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""Minimal systemctl stand-in for the clice training container (no real systemd here).
+Keeps real state: enable = symlink in multi-user.target.wants, start = real process."""
+import os, sys, pwd, grp, time, shlex, signal, subprocess, datetime
+
+UNITDIR = "/etc/systemd/system"
+WANTS = UNITDIR + "/multi-user.target.wants"
+RUN = "/run/ksim"
+
+def die(msg, code=1):
+    sys.stderr.write(msg + "\n"); sys.exit(code)
+
+def norm(u):
+    return u if "." in u else u + ".service"
+
+def upath(u):
+    p = os.path.join(UNITDIR, u)
+    return p if os.path.isfile(p) else None
+
+def parse(u):
+    d = {"Environment": []}
+    sec = None
+    with open(upath(u)) as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith("#"): continue
+            if line.startswith("["): sec = line; continue
+            if "=" in line:
+                k, v = line.split("=", 1)
+                if k == "Environment": d["Environment"].append(v)
+                else: d[k] = v
+    return d
+
+def pidf(u): return os.path.join(RUN, u + ".pid")
+def stopf(u): return os.path.join(RUN, u + ".stopped")
+def logf(u): return os.path.join(RUN, u + ".log")
+
+def alive(pid):
+    try:
+        with open(f"/proc/{pid}/stat") as fh:
+            return fh.read().rsplit(")", 1)[1].split()[0] != "Z"
+    except Exception:
+        return False
+
+def getpid(u):
+    try:
+        return int(open(pidf(u)).read().strip())
+    except Exception:
+        return None
+
+def state(u):
+    pid = getpid(u)
+    if pid and alive(pid): return "active"
+    if pid and not os.path.exists(stopf(u)): return "failed"
+    return "inactive"
+
+def enabled(u):
+    return os.path.islink(os.path.join(WANTS, u))
+
+def start(u):
+    if state(u) == "active": return
+    os.makedirs(RUN, exist_ok=True)
+    try: os.remove(stopf(u))
+    except FileNotFoundError: pass
+    c = parse(u)
+    user = c.get("User", "root")
+    pw = pwd.getpwnam(user)
+    gid = grp.getgrnam(c["Group"]).gr_gid if "Group" in c else pw.pw_gid
+    env = {"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+           "LANG": "C.UTF-8", "HOME": pw.pw_dir, "USER": user, "LOGNAME": user}
+    for e in c["Environment"]:
+        for kv in shlex.split(e):
+            if "=" in kv:
+                k, v = kv.split("=", 1); env[k] = v
+    def drop():
+        os.initgroups(user, gid); os.setgid(gid); os.setuid(pw.pw_uid)
+    log = open(logf(u), "ab")
+    log.write(("-- Starting %s at %s --\n" % (u, time.strftime("%F %T"))).encode()); log.flush()
+    p = subprocess.Popen(shlex.split(c["ExecStart"]), preexec_fn=drop, stdout=log, stderr=log,
+                         stdin=subprocess.DEVNULL, cwd="/", env=env, start_new_session=True, close_fds=True)
+    open(pidf(u), "w").write(str(p.pid))
+    time.sleep(0.8)
+
+def stop(u):
+    pid = getpid(u)
+    if pid and alive(pid):
+        try: os.killpg(pid, signal.SIGTERM)
+        except ProcessLookupError: pass
+        for _ in range(30):
+            if not alive(pid): break
+            time.sleep(0.1)
+        if alive(pid):
+            try: os.killpg(pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+    try: os.remove(pidf(u))
+    except FileNotFoundError: pass
+    os.makedirs(RUN, exist_ok=True)
+    open(stopf(u), "w").close()
+
+def since(u):
+    try: return os.path.getmtime(pidf(u))
+    except Exception: return time.time()
+
+def ago(t):
+    s = int(time.time() - t)
+    if s < 60: return f"{s}s ago"
+    if s < 3600: return f"{s//60}min {s%60}s ago"
+    return f"{s//3600}h {(s%3600)//60}min ago"
+
+def status(u):
+    p = upath(u)
+    if not p: 
+        sys.stderr.write(f"Unit {u} could not be found.\n"); return 4
+    c = parse(u); st = state(u); pid = getpid(u)
+    en = "enabled" if enabled(u) else "disabled"
+    when = datetime.datetime.fromtimestamp(since(u)).strftime("%a %Y-%m-%d %H:%M:%S UTC")
+    dot = {"active": "●", "inactive": "○", "failed": "×"}[st]
+    print(f"{dot} {u} - {c.get('Description', u)}")
+    print(f"     Loaded: loaded ({p}; {en}; preset: enabled)")
+    if st == "active":
+        print(f"     Active: active (running) since {when}; {ago(since(u))}")
+        print(f"   Main PID: {pid} (python3)")
+    elif st == "failed":
+        print(f"     Active: failed (Result: exit-code) since {when}; {ago(since(u))}")
+        print(f"    Process: {pid} ExecStart={c['ExecStart']} (code=exited, status=1/FAILURE)")
+    else:
+        print("     Active: inactive (dead)")
+    try:
+        tail = open(logf(u)).read().splitlines()[-6:]
+        if tail:
+            print()
+            host = open("/etc/hostname").read().strip()
+            for l in tail: print(f"{time.strftime('%b %d %H:%M:%S')} {host} {u.split('.')[0]}[{pid or 0}]: {l}")
+    except Exception: pass
+    return 0 if st == "active" else 3
+
+def main():
+    args = sys.argv[1:]
+    now = False; prop = None; rest = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--now": now = True
+        elif a in ("-p", "--property"): i += 1; prop = args[i]
+        elif a.startswith("--property="): prop = a.split("=", 1)[1]
+        elif a.startswith("-"): pass
+        else: rest.append(a)
+        i += 1
+    if not rest: die("systemctl: missing command (simulated systemctl for this training image)")
+    cmd, units = rest[0], [norm(x) for x in rest[1:]]
+    if os.geteuid() != 0 and cmd in ("start","stop","restart","enable","disable","daemon-reload","reboot"):
+        die("Failed to connect to system scope bus via local transport: Access denied (are you root? try sudo)")
+    if cmd in ("daemon-reload", "daemon-reexec", "reset-failed"): return 0
+    if cmd in ("reboot", "poweroff", "halt"):
+        os.execv("/usr/local/lib/kente/boot-sim", ["boot-sim"])
+    if cmd in ("list-units", "list-unit-files", "list-sockets", "list-timers"):
+        names = sorted(f for f in os.listdir(UNITDIR) if f.endswith(".service"))
+        if cmd == "list-unit-files":
+            print(f"{'UNIT FILE':<34}{'STATE':<10}PRESET"); 
+            for n in names: print(f"{n:<34}{'enabled' if enabled(n) else 'disabled':<10}enabled")
+            print(f"\n{len(names)} unit files listed.")
+        else:
+            print(f"{'UNIT':<30}{'LOAD':<8}{'ACTIVE':<10}{'SUB':<9}DESCRIPTION")
+            for n in names:
+                st = state(n); sub = {"active": "running", "failed": "failed"}.get(st, "dead")
+                print(f"{n:<30}{'loaded':<8}{st:<10}{sub:<9}{parse(n).get('Description', '')}")
+            print(f"\n{len(names)} loaded units listed.")
+        return 0
+    if not units: die("Too few arguments.")
+    rc = 0
+    for u in units:
+        if not upath(u):
+            if cmd in ("is-active", "is-enabled", "is-failed"):
+                print("inactive" if cmd == "is-active" else "") ; rc = 3 if cmd == "is-active" else 1
+                if cmd == "is-enabled": sys.stderr.write(f"Failed to get unit file state for {u}: No such file or directory\n")
+                continue
+            sys.stderr.write(f"Failed to {cmd} {u}: Unit {u} not found.\n"); rc = 5 if cmd != "status" else 4; continue
+        if cmd == "status": rc = status(u) or rc
+        elif cmd == "start": start(u)
+        elif cmd == "stop": stop(u)
+        elif cmd in ("restart", "try-restart", "reload-or-restart"): stop(u); start(u)
+        elif cmd == "reload": 
+            if state(u) != "active": sys.stderr.write(f"Failed to reload {u}: Unit {u} is not active.\n"); rc = 1
+        elif cmd == "enable":
+            os.makedirs(WANTS, exist_ok=True); link = os.path.join(WANTS, u)
+            if not os.path.islink(link):
+                os.symlink(upath(u), link)
+                sys.stderr.write(f"Created symlink {link} → {upath(u)}.\n")
+            if now: start(u)
+        elif cmd == "disable":
+            link = os.path.join(WANTS, u)
+            if os.path.islink(link):
+                os.remove(link); sys.stderr.write(f"Removed {link}.\n")
+            if now: stop(u)
+        elif cmd == "is-active":
+            st = state(u); print(st); rc = rc or (0 if st == "active" else 3)
+        elif cmd == "is-failed":
+            st = state(u); print(st); rc = rc or (0 if st == "failed" else 1)
+        elif cmd == "is-enabled":
+            e = enabled(u); print("enabled" if e else "disabled"); rc = rc or (0 if e else 1)
+        elif cmd == "cat":
+            print(f"# {upath(u)}"); print(open(upath(u)).read(), end="")
+        elif cmd == "show":
+            c = parse(u); st = state(u)
+            props = {"Id": u, "ActiveState": st, "SubState": {"active":"running","failed":"failed"}.get(st,"dead"),
+                     "MainPID": getpid(u) or 0, "User": c.get("User",""), "FragmentPath": upath(u),
+                     "UnitFileState": "enabled" if enabled(u) else "disabled", "ExecStart": c.get("ExecStart","")}
+            for k, v in props.items():
+                if prop is None or k in prop.split(","): print(f"{k}={v}")
+        else:
+            die(f"Unknown command verb {cmd}.")
+    return rc
+
+if __name__ == "__main__":
+    sys.exit(main())

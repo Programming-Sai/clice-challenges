@@ -1,0 +1,15 @@
+#!/bin/bash
+# Runs once when the container starts: puts the "server" into its inherited state.
+mkdir /run/ksim-init 2>/dev/null || exit 0
+mkdir -p /run/ksim
+# Docker owns /etc/hostname and /etc/hosts at runtime, so the inherited state is applied here (in place).
+printf 'ops-test-box\n' > /etc/hostname
+cat >> /etc/hosts <<'HOSTS'
+127.0.1.1   ops-test-box
+10.20.30.40   dispatch.kente.internal   # moved to new box -- km 12/11
+HOSTS
+touch -d '24 days ago' /var/log/kente-app/access.log.1
+touch /var/log/kente-app/access.log
+/usr/local/bin/systemctl start dispatch-stub.service
+/usr/local/bin/systemctl start kente-app.service
+exit 0

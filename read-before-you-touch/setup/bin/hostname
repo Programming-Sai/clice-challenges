@@ -1,0 +1,16 @@
+#!/bin/bash
+# hostname wrapper (training container): `hostname` shows the live name; `hostname NAME`
+# changes only the TRANSIENT name (lost on reboot), exactly like on a real server.
+STATIC=$(head -1 /etc/hostname 2>/dev/null); T=/run/ksim/transient-hostname
+cur=$STATIC; [ -s $T ] && cur=$(cat $T)
+case "${1:-}" in
+  "") echo "$cur";;
+  -s|--short) echo "${cur%%.*}";;
+  -f|--fqdn|--long) echo "$cur";;
+  -i|-I|-d|-y|-A|--ip-address|--all-ip-addresses|--domain|-a|-v|--version|-h|--help) exec /bin/hostname "$@";;
+  -F|--file) [ "$(id -u)" = 0 ] || { echo "hostname: you must be root to change the host name" >&2; exit 1; }
+             mkdir -p /run/ksim; head -1 "$2" > $T;;
+  -*) exec /bin/hostname "$@";;
+  *) [ "$(id -u)" = 0 ] || { echo "hostname: you must be root to change the host name" >&2; exit 1; }
+     mkdir -p /run/ksim; printf '%s\n' "$1" > $T;;
+esac

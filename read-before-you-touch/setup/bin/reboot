@@ -1,0 +1,3 @@
+#!/bin/bash
+# reboot stand-in: simulates a reboot of the training "server".
+exec /usr/local/lib/kente/boot-sim

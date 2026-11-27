@@ -1,0 +1,18 @@
+#!/bin/bash
+# Simulated reboot of the training "server": services stop, transient state is lost,
+# cloud-init may re-apply its hostname, then ONLY units enabled at boot come back up.
+echo "The system is going down for reboot NOW!"
+for p in /run/ksim/*.pid; do [ -e "$p" ] || continue; u=$(basename "$p" .pid); /usr/local/bin/systemctl stop "$u"; done
+rm -f /run/ksim/transient-hostname /run/ksim/*.log
+sleep 1
+preserve=$(cat /etc/cloud/cloud.cfg $(ls /etc/cloud/cloud.cfg.d/*.cfg 2>/dev/null | sort) 2>/dev/null | grep -E '^preserve_hostname:' | tail -1 | awk '{print tolower($2)}')
+if [ "$preserve" != "true" ]; then
+  printf 'ops-test-box\n' > /etc/hostname
+  echo "$(date '+%F %T') cloud-init[612]: util.py[DEBUG]: Set hostname to ops-test-box (from instance metadata, preserve_hostname=false)" >> /var/log/cloud-init.log
+fi
+for w in /etc/systemd/system/multi-user.target.wants/*.service; do
+  [ -L "$w" ] || continue
+  [ -f "/etc/systemd/system/$(basename "$w")" ] || continue
+  /usr/local/bin/systemctl start "$(basename "$w")"
+done
+echo "-- boot complete (simulated). Services enabled at boot were started; nothing else. --"

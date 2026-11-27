@@ -1,0 +1,15 @@
+#!/bin/bash
+# Server-side policy: commits landing on main must carry a company or GitHub no-reply author address.
+zero=0000000000000000000000000000000000000000
+while read -r old new ref; do
+  [ "$ref" = "refs/heads/main" ] || continue
+  [ "$new" = "$zero" ] && continue
+  if [ "$old" = "$zero" ]; then range="$new"; else range="$old..$new"; fi
+  bad=$(git log --format='%ae' "$range" | sort -u | grep -Ev '(@users\.noreply\.github\.com|@kentecourier\.com)$')
+  if [ -n "$bad" ]; then
+    echo "Push blocked: commits for $ref use an author email that isn't a company or GitHub no-reply address:" >&2
+    echo "$bad" | sed 's/^/  /' >&2
+    exit 1
+  fi
+done
+exit 0

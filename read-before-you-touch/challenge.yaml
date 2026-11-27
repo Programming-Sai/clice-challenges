@@ -1,0 +1,29 @@
+code: read-before-you-touch
+title: Read It Before You Touch It
+category: DEVOPS
+difficulty: ADVANCED
+description: >-
+  Your predecessor quit with zero handover. You inherit a Git repository of
+  automation scripts and a Linux server nobody ever documented, and a dispatch
+  release due Monday is blocked. Work out, with evidence, what is genuinely
+  broken versus what only looks wrong. Fix the first, leave every safeguard
+  alone, audit the server against its policy, and write down what the next
+  engineer must never "clean up".
+tags:
+  - git
+  - linux-administration
+  - security-audit
+  - incident-triage
+  - networking
+  - devops
+objectives:
+  - Before you change ANY inherited file, write MEMO.md (what each of the two disputed scripts really does, whether to fix or preserve it with evidence, and what you expect the server audit to find) and commit and push it to origin/main
+  - Find the one genuinely broken script and fix its cause (not a workaround), then prove it with a real backup in /backups
+  - Leave every load-bearing workaround intact - a rougher fix that keeps every safeguard beats a perfect one that removes one
+  - Merge feature/eta-display into main cleanly (both sides' release notes kept, no conflict markers or CRLF) and push to origin without rewriting shared history; the untested WIP snapshot must never reach main
+  - Audit the server against /workspace/docs/SERVER-POLICY.md and fix every finding with least privilege - never widen permissions
+  - The instructor account must stay exactly as it is, and a leaver's home folder is evidence - keep it
+  - Fix the network fault at its cause so that /health returns ok (HTTP 200) - do not bypass the health check or the name
+  - Everything must survive a reboot (verification simulates one)
+  - Commit a HANDOVER.md to main naming the load-bearing workaround and why, your branching convention, and how CALMS and DORA connect to this work
+image: ghcr.io/programming-sai/clice-challenges/read-before-you-touch:latest

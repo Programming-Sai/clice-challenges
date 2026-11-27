@@ -1,0 +1,12 @@
+#!/bin/bash
+# journalctl stand-in: shows the captured output of the simulated services.
+unit=""; n=50
+while [ $# -gt 0 ]; do
+  case "$1" in -u|--unit) unit=$2; shift;; -n|--lines) n=$2; shift;; --no-pager|-e|-f|-x) ;; esac; shift
+done
+host=$(head -1 /etc/hostname)
+for f in /run/ksim/*.log; do
+  [ -e "$f" ] || continue; u=$(basename "$f" .log)
+  [ -n "$unit" ] && [ "${unit%.service}" != "${u%.service}" ] && continue
+  tail -n "$n" "$f" | sed "s/^/$(date '+%b %d %H:%M:%S') $host ${u%.service}: /"
+done
